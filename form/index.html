@@ -1,0 +1,1532 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>نظام التقديم لفريق التأسيس - Gaber Group</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            cairo: ['Cairo', 'sans-serif'],
+            ibm: ['IBM Plex Sans Arabic', 'sans-serif'],
+          },
+          colors: {
+            obsidian: '#09090B',
+            surface: 'rgba(24, 24, 27, 0.7)',
+            amber: { DEFAULT: '#F59E0B', dark: '#D97706', light: '#FBBF24' },
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* ========== القاعدة العامة ========== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'IBM Plex Sans Arabic', sans-serif;
+      background-color: #09090B;
+      color: #e4e4e7;
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+    h1, h2, h3, h4, h5, h6, .font-heading { font-family: 'Cairo', sans-serif; }
+
+    /* ========== خلفية الشبكة المعمارية ========== */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(245,158,11,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(245,158,11,0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ========== وهج المؤشر ========== */
+    #cursor-spotlight {
+      position: fixed;
+      width: 350px;
+      height: 350px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(245,158,11,0.08) 0%, rgba(245,158,11,0.02) 40%, transparent 70%);
+      pointer-events: none;
+      z-index: 1;
+      transform: translate(-50%, -50%);
+      transition: opacity 0.3s ease;
+      will-change: transform;
+    }
+
+    /* ========== أسطح الزجاج ========== */
+    .glass {
+      background: rgba(24, 24, 27, 0.7);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(245,158,11,0.1);
+      border-radius: 16px;
+    }
+    .glass-card {
+      background: rgba(24, 24, 27, 0.5);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(245,158,11,0.08);
+      border-radius: 12px;
+      transition: all 0.3s ease;
+    }
+    .glass-card:hover {
+      border-color: rgba(245,158,11,0.3);
+      box-shadow: 0 0 20px rgba(245,158,11,0.05);
+    }
+
+    /* ========== حقول الإدخال ========== */
+    .input-field {
+      width: 100%;
+      background: rgba(9,9,11,0.6);
+      border: 1px solid rgba(245,158,11,0.15);
+      border-radius: 10px;
+      padding: 12px 16px;
+      color: #e4e4e7;
+      font-family: 'IBM Plex Sans Arabic', sans-serif;
+      font-size: 0.95rem;
+      transition: all 0.3s ease;
+      outline: none;
+    }
+    .input-field:focus {
+      border-color: #F59E0B;
+      box-shadow: 0 0 0 3px rgba(245,158,11,0.1);
+    }
+    .input-field::placeholder { color: #71717a; }
+    .input-field.error { border-color: #ef4444; box-shadow: 0 0 0 3px rgba(239,68,68,0.1); }
+    textarea.input-field { resize: vertical; min-height: 80px; }
+    select.input-field {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23F59E0B' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: left 14px center;
+      padding-left: 36px;
+    }
+
+    /* ========== رسائل الخطأ ========== */
+    .error-msg {
+      color: #ef4444;
+      font-size: 0.8rem;
+      margin-top: 4px;
+      min-height: 1.2em;
+      transition: all 0.3s ease;
+      opacity: 0;
+    }
+    .error-msg.show { opacity: 1; }
+
+    /* ========== أزرار الشرائح (Radio Pills) ========== */
+    .pill-group { display: flex; flex-wrap: wrap; gap: 8px; }
+    .pill-option {
+      position: relative;
+      cursor: pointer;
+    }
+    .pill-option input { position: absolute; opacity: 0; width: 0; height: 0; }
+    .pill-label {
+      display: inline-block;
+      padding: 8px 18px;
+      border-radius: 999px;
+      border: 1px solid rgba(245,158,11,0.2);
+      background: rgba(9,9,11,0.5);
+      color: #a1a1aa;
+      font-size: 0.88rem;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+      user-select: none;
+    }
+    .pill-option input:checked + .pill-label {
+      background: rgba(245,158,11,0.15);
+      border-color: #F59E0B;
+      color: #FBBF24;
+      box-shadow: 0 0 12px rgba(245,158,11,0.15);
+    }
+    .pill-label:hover {
+      border-color: rgba(245,158,11,0.4);
+      color: #e4e4e7;
+    }
+
+    /* ========== الأزرار الرئيسية (مغناطيسية) ========== */
+    .btn-primary {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 32px;
+      background: linear-gradient(135deg, #F59E0B, #D97706);
+      color: #09090B;
+      font-family: 'Cairo', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+      will-change: transform;
+      z-index: 10;
+    }
+    .btn-primary:hover {
+      box-shadow: 0 0 24px rgba(245,158,11,0.3);
+    }
+    .btn-primary:active { transform: scale(0.97) !important; }
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 32px;
+      background: transparent;
+      color: #F59E0B;
+      font-family: 'Cairo', sans-serif;
+      font-weight: 600;
+      font-size: 1rem;
+      border: 1px solid rgba(245,158,11,0.3);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .btn-secondary:hover {
+      background: rgba(245,158,11,0.08);
+      border-color: #F59E0B;
+    }
+
+    /* ========== شريط التقدم ========== */
+    .progress-track {
+      width: 100%;
+      height: 4px;
+      background: rgba(245,158,11,0.1);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #D97706, #F59E0B, #FBBF24);
+      border-radius: 999px;
+      transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .step-dot {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Cairo', sans-serif;
+      font-weight: 700;
+      font-size: 0.85rem;
+      border: 2px solid rgba(245,158,11,0.2);
+      color: #71717a;
+      background: rgba(9,9,11,0.8);
+      transition: all 0.4s ease;
+      flex-shrink: 0;
+    }
+    .step-dot.active {
+      border-color: #F59E0B;
+      color: #F59E0B;
+      box-shadow: 0 0 12px rgba(245,158,11,0.2);
+    }
+    .step-dot.completed {
+      border-color: #F59E0B;
+      background: #F59E0B;
+      color: #09090B;
+    }
+
+    /* ========== بطاقات المسار ثلاثية الأبعاد ========== */
+    .track-card-wrapper {
+      perspective: 800px;
+    }
+    .track-card {
+      position: relative;
+      padding: 24px;
+      border-radius: 16px;
+      border: 2px solid rgba(245,158,11,0.1);
+      background: rgba(24, 24, 27, 0.5);
+      backdrop-filter: blur(8px);
+      cursor: pointer;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.15s ease;
+      transform-style: preserve-3d;
+      will-change: transform;
+      user-select: none;
+    }
+    .track-card:hover {
+      border-color: rgba(245,158,11,0.3);
+    }
+    .track-card.selected {
+      border-color: #F59E0B;
+      box-shadow: 0 0 30px rgba(245,158,11,0.15), inset 0 0 30px rgba(245,158,11,0.03);
+    }
+    .track-card .track-emoji {
+      font-size: 2.5rem;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    /* ========== انتقالات الخطوات ========== */
+    .step-panel {
+      display: none;
+      animation: fadeSlideIn 0.5s ease forwards;
+    }
+    .step-panel.active { display: block; }
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ========== أنيميشن النجاح ========== */
+    @keyframes checkmarkDraw {
+      to { stroke-dashoffset: 0; }
+    }
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 20px rgba(245,158,11,0.2); }
+      50% { box-shadow: 0 0 40px rgba(245,158,11,0.4); }
+    }
+    .success-circle {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #F59E0B, #D97706);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: pulseGlow 2s ease infinite;
+      margin: 0 auto 24px;
+    }
+    .success-circle svg {
+      width: 50px;
+      height: 50px;
+    }
+    .success-circle svg path {
+      stroke: #09090B;
+      stroke-width: 3;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+      stroke-dasharray: 60;
+      stroke-dashoffset: 60;
+      animation: checkmarkDraw 0.6s 0.3s ease forwards;
+    }
+
+    /* ========== خانة اختيار مخصصة ========== */
+    .custom-checkbox {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .custom-checkbox input { position: absolute; opacity: 0; width: 0; height: 0; }
+    .checkbox-mark {
+      width: 22px;
+      height: 22px;
+      min-width: 22px;
+      border-radius: 6px;
+      border: 2px solid rgba(245,158,11,0.3);
+      background: rgba(9,9,11,0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      margin-top: 2px;
+    }
+    .custom-checkbox input:checked + .checkbox-mark {
+      background: #F59E0B;
+      border-color: #F59E0B;
+    }
+    .checkbox-mark svg { opacity: 0; transition: opacity 0.2s ease; width: 14px; height: 14px; }
+    .custom-checkbox input:checked + .checkbox-mark svg { opacity: 1; }
+
+    /* ========== حقل الإدخال مع أيقونة ========== */
+    .icon-input-wrapper {
+      position: relative;
+    }
+    .icon-input-wrapper .input-icon {
+      position: absolute;
+      top: 50%;
+      right: 14px;
+      transform: translateY(-50%);
+      width: 20px;
+      height: 20px;
+      color: #71717a;
+      pointer-events: none;
+      transition: color 0.3s ease;
+    }
+    .icon-input-wrapper .input-field {
+      padding-right: 44px;
+    }
+    .icon-input-wrapper:focus-within .input-icon { color: #F59E0B; }
+
+    /* ========== سيناريو ========== */
+    .scenario-card {
+      background: rgba(24,24,27,0.4);
+      border: 1px solid rgba(245,158,11,0.08);
+      border-radius: 14px;
+      padding: 20px;
+      transition: all 0.3s ease;
+    }
+    .scenario-card:hover {
+      border-color: rgba(245,158,11,0.15);
+    }
+
+    /* ========== سكرول بار مخصص ========== */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(245,158,11,0.2); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(245,158,11,0.4); }
+
+    /* ========== استجابة للموبايل ========== */
+    @media (max-width: 640px) {
+      .pill-label { padding: 6px 14px; font-size: 0.82rem; }
+      .track-card .track-emoji { font-size: 2rem; }
+      .step-dot { width: 28px; height: 28px; font-size: 0.78rem; }
+      #cursor-spotlight { display: none; }
+    }
+
+    /* ========== أنيميشن دخول المحتوى ========== */
+    .fade-up {
+      opacity: 0;
+      transform: translateY(16px);
+      animation: fadeSlideIn 0.6s ease forwards;
+    }
+    .fade-up-delay-1 { animation-delay: 0.1s; }
+    .fade-up-delay-2 { animation-delay: 0.2s; }
+    .fade-up-delay-3 { animation-delay: 0.3s; }
+  </style>
+
+  <!-- مكتبة EmailJS وتفعيل المفتاح العام -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script>
+    (function () {
+      emailjs.init({
+        publicKey: "hPWbNqVE5RcVxb1R8"
+      });
+    })();
+  </script>
+</head>
+<body>
+  <!-- وهج المؤشر -->
+  <div id="cursor-spotlight"></div>
+
+  <!-- الحاوية الرئيسية -->
+  <div class="relative z-10 min-h-screen flex flex-col items-center px-4 py-8 sm:py-12">
+
+    <!-- الشعار والعنوان -->
+    <header class="text-center mb-8 fade-up">
+      <div class="inline-flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center">
+          <span class="text-obsidian font-cairo font-black text-lg">G</span>
+        </div>
+        <h1 class="font-cairo font-black text-2xl sm:text-3xl text-white">Gaber Group</h1>
+      </div>
+      <h2 class="font-cairo font-bold text-lg sm:text-xl text-amber-400 mb-2">نظام التقديم لفريق التأسيس</h2>
+      <p class="text-zinc-400 text-sm max-w-md mx-auto">انضم لفريق التأسيس وكن جزءًا من البداية</p>
+    </header>
+
+    <!-- شريط التقدم -->
+    <div class="w-full max-w-2xl mb-8 fade-up fade-up-delay-1">
+      <div class="flex items-center justify-between mb-3 px-2">
+        <div class="flex items-center gap-2">
+          <div class="step-dot active" data-step="0">١</div>
+          <span class="text-xs text-zinc-500 hidden sm:inline">البيانات الشخصية</span>
+        </div>
+        <div class="flex-1 mx-2 h-px bg-zinc-800"></div>
+        <div class="flex items-center gap-2">
+          <div class="step-dot" data-step="1">٢</div>
+          <span class="text-xs text-zinc-500 hidden sm:inline">الروابط والإتاحة</span>
+        </div>
+        <div class="flex-1 mx-2 h-px bg-zinc-800"></div>
+        <div class="flex items-center gap-2">
+          <div class="step-dot" data-step="2">٣</div>
+          <span class="text-xs text-zinc-500 hidden sm:inline">تقييم السلوك</span>
+        </div>
+        <div class="flex-1 mx-2 h-px bg-zinc-800"></div>
+        <div class="flex items-center gap-2">
+          <div class="step-dot" data-step="3">٤</div>
+          <span class="text-xs text-zinc-500 hidden sm:inline">المسار</span>
+        </div>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-fill" style="width: 12.5%"></div>
+      </div>
+    </div>
+
+    <!-- نموذج التقديم -->
+    <form id="application-form" class="w-full max-w-2xl" novalidate autocomplete="off">
+
+      <!-- ========== الخطوة 1: البيانات الشخصية ========== -->
+      <div class="step-panel active" id="step-0">
+        <div class="glass p-6 sm:p-8">
+          <h3 class="font-cairo font-bold text-xl text-amber-400 mb-1">البيانات الشخصية</h3>
+          <p class="text-zinc-500 text-sm mb-6">أدخل بياناتك الأساسية بدقة</p>
+
+          <!-- الاسم الكامل -->
+          <div class="mb-5">
+            <label class="block text-sm font-semibold text-zinc-300 mb-2">الاسم الكامل <span class="text-amber-500">*</span></label>
+            <input type="text" name="name" class="input-field" placeholder="مثال: أحمد محمد عبدالله" required>
+            <div class="error-msg" data-for="name"></div>
+          </div>
+
+          <!-- المحافظة -->
+          <div class="mb-5">
+            <label class="block text-sm font-semibold text-zinc-300 mb-2">المحافظة <span class="text-amber-500">*</span></label>
+            <select name="governorate" class="input-field" required>
+              <option value="القاهرة">القاهرة</option>
+              <option value="الجيزة">الجيزة</option>
+              <option value="الإسكندرية">الإسكندرية</option>
+              <option value="الدقهلية" selected>الدقهلية</option>
+              <option value="البحيرة">البحيرة</option>
+              <option value="الشرقية">الشرقية</option>
+              <option value="القليوبية">القليوبية</option>
+              <option value="المنوفية">المنوفية</option>
+              <option value="الغربية">الغربية</option>
+              <option value="كفر الشيخ">كفر الشيخ</option>
+              <option value="دمياط">دمياط</option>
+              <option value="بورسعيد">بورسعيد</option>
+              <option value="الإسماعيلية">الإسماعيلية</option>
+              <option value="السويس">السويس</option>
+              <option value="شمال سيناء">شمال سيناء</option>
+              <option value="جنوب سيناء">جنوب سيناء</option>
+              <option value="بني سويف">بني سويف</option>
+              <option value="الفيوم">الفيوم</option>
+              <option value="المنيا">المنيا</option>
+              <option value="أسيوط">أسيوط</option>
+              <option value="سوهاج">سوهاج</option>
+              <option value="قنا">قنا</option>
+              <option value="الأقصر">الأقصر</option>
+              <option value="أسوان">أسوان</option>
+              <option value="البحر الأحمر">البحر الأحمر</option>
+              <option value="الوادي الجديد">الوادي الجديد</option>
+              <option value="مطروح">مطروح</option>
+            </select>
+            <div class="error-msg" data-for="governorate"></div>
+          </div>
+
+          <!-- العنوان التفصيلي -->
+          <div class="mb-5">
+            <label class="block text-sm font-semibold text-zinc-300 mb-2">العنوان التفصيلي <span class="text-amber-500">*</span></label>
+            <input type="text" name="address" class="input-field" placeholder="المدينة / الحي / الشارع" required>
+            <div class="error-msg" data-for="address"></div>
+          </div>
+
+          <!-- رقم الواتساب -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
+            <div>
+              <label class="block text-sm font-semibold text-zinc-300 mb-2">رقم الواتساب <span class="text-amber-500">*</span></label>
+              <input type="tel" name="whatsapp" class="input-field" placeholder="01XXXXXXXXX" required dir="ltr" style="text-align:right;">
+              <div class="error-msg" data-for="whatsapp"></div>
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-zinc-300 mb-2">رقم بديل <span class="text-zinc-500 text-xs">(اختياري)</span></label>
+              <input type="tel" name="altPhone" class="input-field" placeholder="01XXXXXXXXX" dir="ltr" style="text-align:right;">
+              <div class="error-msg" data-for="altPhone"></div>
+            </div>
+          </div>
+
+          <!-- البريد الإلكتروني -->
+          <div class="mb-5">
+            <label class="block text-sm font-semibold text-zinc-300 mb-2">البريد الإلكتروني <span class="text-amber-500">*</span></label>
+            <input type="email" name="email" class="input-field" placeholder="example@email.com" required dir="ltr" style="text-align:right;">
+            <div class="error-msg" data-for="email"></div>
+          </div>
+
+          <!-- الكلية / التخصص -->
+          <div class="mb-5">
+            <label class="block text-sm font-semibold text-zinc-300 mb-2">الكلية / التخصص <span class="text-amber-500">*</span></label>
+            <input type="text" name="faculty" class="input-field" placeholder="مثال: كلية الهندسة - قسم الحاسبات" required>
+            <div class="error-msg" data-for="faculty"></div>
+          </div>
+
+          <!-- السنة الدراسية -->
+          <div class="mb-2">
+            <label class="block text-sm font-semibold text-zinc-300 mb-3">السنة الدراسية <span class="text-amber-500">*</span></label>
+            <div class="pill-group">
+              <label class="pill-option"><input type="radio" name="academicYear" value="إعدادي"><span class="pill-label">إعدادي</span></label>
+              <label class="pill-option"><input type="radio" name="academicYear" value="الفرقة الأولى"><span class="pill-label">الفرقة الأولى</span></label>
+              <label class="pill-option"><input type="radio" name="academicYear" value="الفرقة الثانية"><span class="pill-label">الفرقة الثانية</span></label>
+              <label class="pill-option"><input type="radio" name="academicYear" value="الفرقة الثالثة"><span class="pill-label">الفرقة الثالثة</span></label>
+              <label class="pill-option"><input type="radio" name="academicYear" value="الفرقة الرابعة"><span class="pill-label">الفرقة الرابعة</span></label>
+              <label class="pill-option"><input type="radio" name="academicYear" value="خريج"><span class="pill-label">خريج</span></label>
+            </div>
+            <div class="error-msg" data-for="academicYear"></div>
+          </div>
+        </div>
+
+        <!-- أزرار التنقل -->
+        <div class="flex justify-start mt-6">
+          <button type="button" class="btn-primary magnetic-btn" onclick="goToStep(1)">
+            التالي
+            <svg class="w-5 h-5 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- ========== الخطوة 2: الروابط والإتاحة ========== -->
+      <div class="step-panel" id="step-1">
+        <div class="glass p-6 sm:p-8">
+          <h3 class="font-cairo font-bold text-xl text-amber-400 mb-1">الروابط والإتاحة</h3>
+          <p class="text-zinc-500 text-sm mb-6">روابط حساباتك ومدى تفرغك - يجب إدخال رابط واحد على الأقل</p>
+
+          <!-- روابط التواصل -->
+          <div class="space-y-4 mb-6">
+            <!-- GitHub -->
+            <div>
+              <label class="block text-sm font-semibold text-zinc-300 mb-2">GitHub</label>
+              <div class="icon-input-wrapper">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.387.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 21.795 24 17.295 24 12c0-6.63-5.37-12-12-12z"/></svg>
+                <input type="url" name="github" class="input-field" placeholder="https://github.com/username" dir="ltr" style="text-align:right;">
+              </div>
+            </div>
+
+            <!-- LinkedIn -->
+            <div>
+              <label class="block text-sm font-semibold text-zinc-300 mb-2">LinkedIn</label>
+              <div class="icon-input-wrapper">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                <input type="url" name="linkedin" class="input-field" placeholder="https://linkedin.com/in/username" dir="ltr" style="text-align:right;">
+              </div>
+            </div>
+
+            <!-- Facebook -->
+            <div>
+              <label class="block text-sm font-semibold text-zinc-300 mb-2">Facebook</label>
+              <div class="icon-input-wrapper">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                <input type="url" name="facebook" class="input-field" placeholder="https://facebook.com/username" dir="ltr" style="text-align:right;">
+              </div>
+            </div>
+
+            <!-- Portfolio -->
+            <div>
+              <label class="block text-sm font-semibold text-zinc-300 mb-2">Portfolio / Behance / موقع شخصي <span class="text-zinc-500 text-xs">(اختياري)</span></label>
+              <div class="icon-input-wrapper">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+                <input type="url" name="portfolio" class="input-field" placeholder="https://your-portfolio.com" dir="ltr" style="text-align:right;">
+              </div>
+            </div>
+          </div>
+          <div class="error-msg" data-for="links" style="margin-top:-8px;margin-bottom:12px;"></div>
+
+          <hr class="border-zinc-800 mb-6">
+
+          <!-- ساعات الالتزام الأسبوعية -->
+          <div class="mb-6">
+            <label class="block text-sm font-semibold text-zinc-300 mb-3">ساعات الالتزام الأسبوعية <span class="text-amber-500">*</span></label>
+            <div class="pill-group">
+              <label class="pill-option"><input type="radio" name="hours" value="أقل من 5 ساعات"><span class="pill-label">أقل من 5 ساعات</span></label>
+              <label class="pill-option"><input type="radio" name="hours" value="5–10 ساعات"><span class="pill-label">5–10 ساعات</span></label>
+              <label class="pill-option"><input type="radio" name="hours" value="10–20 ساعة"><span class="pill-label">10–20 ساعة</span></label>
+              <label class="pill-option"><input type="radio" name="hours" value="أكثر من 20 ساعة"><span class="pill-label">أكثر من 20 ساعة</span></label>
+            </div>
+            <div class="error-msg" data-for="hours"></div>
+          </div>
+
+          <!-- العمل بدون مقابل مادي -->
+          <div class="mb-6">
+            <label class="block text-sm font-semibold text-zinc-300 mb-3">العمل بدون مقابل مادي في مرحلة التأسيس <span class="text-amber-500">*</span></label>
+            <div class="pill-group">
+              <label class="pill-option"><input type="radio" name="compensation" value="موافق وفاهم طبيعة مرحلة التأسيس"><span class="pill-label">موافق وفاهم طبيعة مرحلة التأسيس</span></label>
+              <label class="pill-option"><input type="radio" name="compensation" value="موافق بس محتاج أعرف خطة الشراكة والأرباح"><span class="pill-label">موافق بس محتاج أعرف خطة الشراكة والأرباح</span></label>
+              <label class="pill-option"><input type="radio" name="compensation" value="مش مناسب لي"><span class="pill-label">مش مناسب لي</span></label>
+            </div>
+            <div class="error-msg" data-for="compensation"></div>
+          </div>
+
+          <!-- الحضور الأوفلاين في المنصورة -->
+          <div class="mb-6">
+            <label class="block text-sm font-semibold text-zinc-300 mb-3">الحضور الأوفلاين في المنصورة <span class="text-amber-500">*</span></label>
+            <div class="pill-group">
+              <label class="pill-option"><input type="radio" name="mansouraMeetings" value="بانتظام"><span class="pill-label">بانتظام</span></label>
+              <label class="pill-option"><input type="radio" name="mansouraMeetings" value="أحيانًا حسب الظروف"><span class="pill-label">أحيانًا حسب الظروف</span></label>
+              <label class="pill-option"><input type="radio" name="mansouraMeetings" value="أونلاين فقط"><span class="pill-label">أونلاين فقط</span></label>
+            </div>
+            <div class="error-msg" data-for="mansouraMeetings"></div>
+          </div>
+
+          <!-- عوائق محتملة -->
+          <div class="mb-2">
+            <label class="block text-sm font-semibold text-zinc-300 mb-2">عوائق محتملة</label>
+            <textarea name="blockers" class="input-field" rows="3" placeholder="لو فيه أي حاجة ممكن تأثر على التزامك (سفر، امتحانات، شغل...) اذكرها هنا"></textarea>
+          </div>
+        </div>
+
+        <div class="flex justify-between mt-6">
+          <button type="button" class="btn-secondary" onclick="goToStep(0)">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            السابق
+          </button>
+          <button type="button" class="btn-primary magnetic-btn" onclick="goToStep(2)">
+            التالي
+            <svg class="w-5 h-5 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- ========== الخطوة 3: تقييم السلوك تحت الضغط ========== -->
+      <div class="step-panel" id="step-2">
+        <div class="glass p-6 sm:p-8">
+          <h3 class="font-cairo font-bold text-xl text-amber-400 mb-1">تقييم السلوك تحت الضغط</h3>
+          <p class="text-zinc-500 text-sm mb-6">أجب على المواقف التالية بصدق - مفيش إجابة صح وإجابة غلط</p>
+
+          <!-- السيناريو 1 -->
+          <div class="scenario-card mb-5">
+            <p class="text-zinc-200 text-sm font-semibold mb-4 leading-relaxed">
+              <span class="text-amber-400 font-cairo">السيناريو ١:</span>
+              عندك ديدلاين يوم الخميس، ويوم الأربعاء اكتشفت إنك مش هتخلص في المعاد. إيه أول حاجة هتعملها؟
+            </p>
+            <div class="space-y-2 mb-4">
+              <label class="pill-option flex items-start gap-3 cursor-pointer">
+                <input type="radio" name="scenario1" value="هبلّغ التيم ليدر فوراً وأوضح إيه اللي خلصته وإيه اللي محتاج وقت" class="mt-1">
+                <span class="pill-label text-right leading-relaxed" style="white-space:normal;">هبلّغ التيم ليدر فوراً وأوضح إيه اللي خلصته وإيه اللي محتاج وقت</span>
+              </label>
+              <label class="pill-option flex items-start gap-3 cursor-pointer">
+                <input type="radio" name="scenario1" value="هحاول أخلص لوحدي حتى لو الجودة أقل" class="mt-1">
+                <span class="pill-label text-right leading-relaxed" style="white-space:normal;">هحاول أخلص لوحدي حتى لو الجودة أقل</span>
+              </label>
+              <label class="pill-option flex items-start gap-3 cursor-pointer">
+                <input type="radio" name="scenario1" value="هستنى لحد الديدلاين وأشوف إيه اللي يحصل" class="mt-1">
+                <span class="pill-label text-right leading-relaxed" style="white-space:normal;">هستنى لحد الديدلاين وأشوف إيه اللي يحصل</span>
+              </label>
+              <label class="pill-option flex items-start gap-3 cursor-pointer">
+                <input type="radio" name="scenario1" value="هطلب من حد تاني يخلصهالي" class="mt-1">
+                <span class="pill-label text-right leading-relaxed" style="white-space:normal;">هطلب من حد تاني يخلصهالي</span>
+              </label>
+            </div>
+            <div class="error-msg" data-for="scenario1" style="margin-bottom:8px;"></div>
+            <textarea name="scenario1Reason" class="input-field" rows="2" placeholder="وضح ليه اخترت الإجابة دي في سطرين"></textarea>
+            <div class="error-msg" data-for="scenario1Reason"></div>
+          </div>
+
+          <!-- السيناريو 2 -->
+          <div class="scenario-card mb-5">
+            <p class="text-zinc-200 text-sm font-semibold mb-4 leading-relaxed">
+              <span class="text-amber-400 font-cairo">السيناريو ٢:</span>
+              زميلك في التيم انتقد شغلك بشكل حاد قدام باقي الفريق. إيه ردك؟
+            </p>
+            <textarea name="scenario2" class="input-field" rows="3" placeholder="اكتب ردك هنا..."></textarea>
+            <div class="error-msg" data-for="scenario2"></div>
+          </div>
+
+          <!-- السيناريو 3 -->
+          <div class="scenario-card mb-5">
+            <p class="text-zinc-200 text-sm font-semibold mb-4 leading-relaxed">
+              <span class="text-amber-400 font-cairo">السيناريو ٣:</span>
+              لاحظت إن زميل في الفريق مش بيشتغل وباقي الفريق بيغطّوا عليه. هتعمل إيه؟
+            </p>
+            <textarea name="scenario3" class="input-field" rows="3" placeholder="اكتب ردك هنا..."></textarea>
+            <div class="error-msg" data-for="scenario3"></div>
+          </div>
+
+          <!-- السيناريو 4 -->
+          <div class="scenario-card mb-5">
+            <p class="text-zinc-200 text-sm font-semibold mb-4 leading-relaxed">
+              <span class="text-amber-400 font-cairo">السيناريو ٤:</span>
+              اختلفت مع التيم ليدر في قرار وانت متأكد إنك صح. هتتعامل إزاي؟
+            </p>
+            <textarea name="scenario4" class="input-field" rows="3" placeholder="اكتب ردك هنا..."></textarea>
+            <div class="error-msg" data-for="scenario4"></div>
+          </div>
+
+          <!-- السيناريو 5 -->
+          <div class="scenario-card mb-2">
+            <p class="text-zinc-200 text-sm font-semibold mb-4 leading-relaxed">
+              <span class="text-amber-400 font-cairo">السيناريو ٥:</span>
+              إيه الدافع الحقيقي إنك تنضم لستارت أب في مرحلة التأسيس من غير مقابل مادي في البداية؟
+            </p>
+            <textarea name="scenario5" class="input-field" rows="3" placeholder="اكتب ردك هنا..."></textarea>
+            <div class="error-msg" data-for="scenario5"></div>
+          </div>
+        </div>
+
+        <div class="flex justify-between mt-6">
+          <button type="button" class="btn-secondary" onclick="goToStep(1)">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            السابق
+          </button>
+          <button type="button" class="btn-primary magnetic-btn" onclick="goToStep(3)">
+            التالي
+            <svg class="w-5 h-5 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- ========== الخطوة 4: اختيار المسار ========== -->
+      <div class="step-panel" id="step-3">
+        <div class="glass p-6 sm:p-8">
+          <h3 class="font-cairo font-bold text-xl text-amber-400 mb-1">اختيار المسار</h3>
+          <p class="text-zinc-500 text-sm mb-6">اختر المسار اللي شايف نفسك فيه</p>
+
+          <!-- بطاقات المسارات -->
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6" id="tracks-grid">
+            <div class="track-card-wrapper">
+              <div class="track-card" data-track="frontend" onclick="selectTrack('frontend')">
+                <span class="track-emoji">🎨</span>
+                <h4 class="font-cairo font-bold text-white text-sm mb-1">Front-End</h4>
+                <p class="text-zinc-500 text-xs">تطوير الواجهات</p>
+              </div>
+            </div>
+            <div class="track-card-wrapper">
+              <div class="track-card" data-track="backend" onclick="selectTrack('backend')">
+                <span class="track-emoji">⚙️</span>
+                <h4 class="font-cairo font-bold text-white text-sm mb-1">Back-End</h4>
+                <p class="text-zinc-500 text-xs">تطوير الخوادم والأنظمة</p>
+              </div>
+            </div>
+            <div class="track-card-wrapper">
+              <div class="track-card" data-track="uiux" onclick="selectTrack('uiux')">
+                <span class="track-emoji">🖌️</span>
+                <h4 class="font-cairo font-bold text-white text-sm mb-1">UI/UX</h4>
+                <p class="text-zinc-500 text-xs">تصميم تجربة المستخدم</p>
+              </div>
+            </div>
+            <div class="track-card-wrapper">
+              <div class="track-card" data-track="ai" onclick="selectTrack('ai')">
+                <span class="track-emoji">🤖</span>
+                <h4 class="font-cairo font-bold text-white text-sm mb-1">AI Automation</h4>
+                <p class="text-zinc-500 text-xs">الذكاء الاصطناعي والأتمتة</p>
+              </div>
+            </div>
+            <div class="track-card-wrapper">
+              <div class="track-card" data-track="content" onclick="selectTrack('content')">
+                <span class="track-emoji">📝</span>
+                <h4 class="font-cairo font-bold text-white text-sm mb-1">Content Creator</h4>
+                <p class="text-zinc-500 text-xs">صناعة المحتوى</p>
+              </div>
+            </div>
+          </div>
+          <div class="error-msg" data-for="track" style="margin-top:-12px;margin-bottom:12px;"></div>
+          <input type="hidden" name="track" value="">
+
+          <!-- أسئلة المسار الديناميكية -->
+          <div id="track-questions" class="hidden" style="animation: fadeSlideIn 0.5s ease forwards;">
+            <hr class="border-zinc-800 mb-6">
+            <h4 class="font-cairo font-bold text-base text-zinc-200 mb-4" id="track-questions-title">أسئلة المسار</h4>
+            <div id="track-questions-container" class="space-y-5"></div>
+          </div>
+
+          <hr class="border-zinc-800 my-6">
+
+          <!-- خانة التأكيد -->
+          <label class="custom-checkbox">
+            <input type="checkbox" name="taskReady" value="1">
+            <span class="checkbox-mark">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#09090B" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+            </span>
+            <span class="text-sm text-zinc-300 leading-relaxed">أنا مستعد لاستلام مهمة تجريبية عملية خلال 48-72 ساعة كجزء من عملية التقييم</span>
+          </label>
+          <div class="error-msg" data-for="taskReady"></div>
+        </div>
+
+        <div class="flex justify-between mt-6">
+          <button type="button" class="btn-secondary" onclick="goToStep(2)">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            السابق
+          </button>
+          <button type="submit" class="btn-primary magnetic-btn" id="submit-btn">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            إرسال التقديم
+          </button>
+        </div>
+      </div>
+    </form>
+
+    <!-- ========== شاشة التأكيد ========== -->
+    <div id="success-screen" class="hidden w-full max-w-2xl">
+      <div class="glass p-8 sm:p-12 text-center">
+        <div class="success-circle">
+          <svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
+        </div>
+        <h3 class="font-cairo font-bold text-2xl text-white mb-2">تم استلام تقديمك بنجاح! 🎉</h3>
+        <p class="text-zinc-400 text-sm mb-6 max-w-md mx-auto">شكراً لاهتمامك بالانضمام لفريق التأسيس. تم إرسال إيميل تأكيد إلى بريدك الإلكتروني، وهنراجع تقديمك ونتواصل معاك قريباً إن شاء الله.</p>
+
+        <div class="glass-card p-4 inline-block mb-6">
+          <p class="text-zinc-500 text-xs mb-1">رقم التقديم</p>
+          <p class="font-cairo font-black text-2xl text-amber-400" id="app-id-display" dir="ltr">GG-2026-0000</p>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-3 justify-center">
+          <button class="btn-primary magnetic-btn" id="download-receipt-btn" onclick="downloadReceipt()">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            تحميل إيصال التقديم
+          </button>
+          <button class="btn-secondary" onclick="startNewApplication()">تقديم جديد</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="mt-12 text-center text-zinc-600 text-xs">
+      <p>© 2026 Gaber Group — جميع الحقوق محفوظة</p>
+    </footer>
+  </div>
+
+  <script>
+    /* ================================================================
+       نظام التقديم لفريق التأسيس - Gaber Group
+       كود JavaScript كامل ومتكامل
+    ================================================================ */
+
+    // ========== المتغيرات العامة ==========
+    const DRAFT_KEY = 'gaber_founding_draft_v1';
+    const APPLICANTS_KEY = 'gaber_founding_applicants_v1';
+    let currentStep = 0;
+    let selectedTrack = '';
+    let lastSubmission = null;
+
+    // ========== أسئلة كل مسار ==========
+    const trackQuestions = {
+      frontend: {
+        title: 'أسئلة مسار Front-End',
+        questions: [
+          'لو عندك صفحة بتحمّل بطيء جداً على موبايلات المستخدمين في مصر (إنترنت ضعيف)، إيه أول 3 حاجات هتعملها لتحسين الأداء؟',
+          'كلاينت طلب تعديل في الديزاين بعد ما خلصت الكود. التعديل بسيط بصرياً بس هيأثر على هيكل الكومبوننتس. هتتعامل إزاي؟',
+          'إيه الفرق بين إنك تبني كومبوننت من الصفر وإنك تستخدم مكتبة جاهزة؟ إمتى تختار كل واحدة؟'
+        ]
+      },
+      backend: {
+        title: 'أسئلة مسار Back-End',
+        questions: [
+          'لو API بتاعتك بدأت تاخد وقت طويل في الاستجابة مع زيادة عدد المستخدمين، إيه خطوات التشخيص والحل؟',
+          'إزاي هتصمم نظام authentication آمن لتطبيق فيه أدوار مختلفة (مستخدم عادي، مشرف، أدمن)؟',
+          'قاعدة البيانات وقعت فجأة والسيستم شغال. إيه أول 3 خطوات هتاخدها؟'
+        ]
+      },
+      uiux: {
+        title: 'أسئلة مسار UI/UX',
+        questions: [
+          'لو عندك فورم طويلة (زي اللي بتملاها دلوقتي 😄) إزاي هتخليها تجربة سهلة ومش مملة للمستخدم؟',
+          'كلاينت عايز ديزاين "مختلف ومبتكر" بس من غير تفاصيل واضحة. إزاي هتبدأ تشتغل؟',
+          'إيه الفرق بين UI حلوة و UX كويسة؟ ممكن يكون عندك واحدة من غير التانية؟'
+        ]
+      },
+      ai: {
+        title: 'أسئلة مسار AI Automation',
+        questions: [
+          'لو عايز تعمل أوتوميشن لعملية يدوية في شركة (مثلاً فلترة CVs)، إيه الخطوات من أول الفهم للتنفيذ؟',
+          'إيه الفرق بين إنك تستخدم AI model جاهز (API) وإنك تدرّب موديل خاص؟ إمتى تختار كل واحد؟',
+          'لو بنيت بوت بيرد على العملاء وبدأ يدي إجابات غلط، إزاي هتعالج الموضوع؟'
+        ]
+      },
+      content: {
+        title: 'أسئلة مسار Content Creator',
+        questions: [
+          'لو عندك منتج جديد ومحتاج تعمله محتوى يوصل لطلاب جامعة. إيه خطة المحتوى بتاعتك لأول أسبوعين؟',
+          'إيه الفرق بين محتوى بيجيب Engagement ومحتوى بيجيب Conversion؟ وإزاي توازن بينهم؟',
+          'بوست اشتغلت عليه كتير منزلش زي ما توقعت. إيه أول حاجة هتعملها؟'
+        ]
+      }
+    };
+
+    // ========== وهج المؤشر ==========
+    (() => {
+      const spotlight = document.getElementById('cursor-spotlight');
+      let mouseX = -500, mouseY = -500;
+      let spotX = -500, spotY = -500;
+
+      document.addEventListener('mousemove', (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+        spotlight.style.opacity = '1';
+      });
+
+      document.addEventListener('mouseleave', () => {
+        spotlight.style.opacity = '0';
+      });
+
+      function animateSpotlight() {
+        // تحريك سلس بمعدل تخميد
+        spotX += (mouseX - spotX) * 0.12;
+        spotY += (mouseY - spotY) * 0.12;
+        spotlight.style.transform = `translate(${spotX - 175}px, ${spotY - 175}px)`;
+        requestAnimationFrame(animateSpotlight);
+      }
+      animateSpotlight();
+    })();
+
+    // ========== أزرار مغناطيسية ==========
+    document.querySelectorAll('.magnetic-btn').forEach(btn => {
+      btn.addEventListener('mousemove', (e) => {
+        const rect = btn.getBoundingClientRect();
+        const x = e.clientX - rect.left - rect.width / 2;
+        const y = e.clientY - rect.top - rect.height / 2;
+        const dist = Math.sqrt(x * x + y * y);
+        const maxDist = 40;
+        if (dist < maxDist) {
+          const pull = (maxDist - dist) / maxDist;
+          btn.style.transform = `translate(${x * pull * 0.3}px, ${y * pull * 0.3}px)`;
+        }
+      });
+      btn.addEventListener('mouseleave', () => {
+        btn.style.transform = '';
+        btn.style.transition = 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease';
+      });
+      btn.addEventListener('mouseenter', () => {
+        btn.style.transition = 'transform 0.15s ease, box-shadow 0.3s ease';
+      });
+    });
+
+    // ========== بطاقات ثلاثية الأبعاد ==========
+    function init3DCards() {
+      document.querySelectorAll('.track-card').forEach(card => {
+        card.addEventListener('mousemove', (e) => {
+          const rect = card.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          const centerX = rect.width / 2;
+          const centerY = rect.height / 2;
+          const rotateX = ((y - centerY) / centerY) * -8;
+          const rotateY = ((x - centerX) / centerX) * 8;
+          card.style.transform = `perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
+        });
+        card.addEventListener('mouseleave', () => {
+          card.style.transform = 'perspective(800px) rotateX(0deg) rotateY(0deg) scale(1)';
+        });
+      });
+    }
+    init3DCards();
+
+    // ========== التنقل بين الخطوات ==========
+    function goToStep(targetStep) {
+      // التحقق قبل التقدم
+      if (targetStep > currentStep) {
+        if (!validateStep(currentStep)) return;
+      }
+
+      currentStep = targetStep;
+      saveDraft();
+
+      // إخفاء جميع الخطوات
+      document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
+      // إظهار الخطوة المطلوبة
+      const panel = document.getElementById(`step-${targetStep}`);
+      panel.classList.add('active');
+
+      // تحديث شريط التقدم
+      const fill = ((targetStep + 0.5) / 4) * 100;
+      document.getElementById('progress-fill').style.width = `${fill}%`;
+
+      // تحديث نقاط الخطوات
+      document.querySelectorAll('.step-dot').forEach((dot, i) => {
+        dot.classList.remove('active', 'completed');
+        if (i < targetStep) dot.classList.add('completed');
+        else if (i === targetStep) dot.classList.add('active');
+      });
+
+      // تمرير لأعلى
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ========== اختيار المسار ==========
+    function selectTrack(track) {
+      selectedTrack = track;
+      document.querySelector('input[name="track"]').value = track;
+
+      // تحديث حالة البطاقات
+      document.querySelectorAll('.track-card').forEach(c => c.classList.remove('selected'));
+      document.querySelector(`.track-card[data-track="${track}"]`).classList.add('selected');
+
+      // إظهار أسئلة المسار
+      const questionsDiv = document.getElementById('track-questions');
+      const container = document.getElementById('track-questions-container');
+      const titleEl = document.getElementById('track-questions-title');
+
+      const data = trackQuestions[track];
+      titleEl.textContent = data.title;
+      container.innerHTML = '';
+
+      data.questions.forEach((q, i) => {
+        const div = document.createElement('div');
+        div.className = 'scenario-card';
+        div.innerHTML = `
+          <p class="text-zinc-200 text-sm font-semibold mb-3 leading-relaxed">
+            <span class="text-amber-400 font-cairo">سؤال ${i + 1}:</span> ${q}
+          </p>
+          <textarea name="trackQ${i + 1}" class="input-field" rows="3" placeholder="اكتب إجابتك هنا..."></textarea>
+          <div class="error-msg" data-for="trackQ${i + 1}"></div>
+        `;
+        container.appendChild(div);
+      });
+
+      questionsDiv.classList.remove('hidden');
+      questionsDiv.style.animation = 'none';
+      questionsDiv.offsetHeight; // إعادة التدفق
+      questionsDiv.style.animation = 'fadeSlideIn 0.5s ease forwards';
+
+      // إخفاء رسالة الخطأ
+      clearError('track');
+
+      // ربط أسئلة المسار بالحفظ التلقائي
+      container.querySelectorAll('textarea').forEach(ta => {
+        ta.addEventListener('input', saveDraft);
+      });
+
+      // استعادة إجابات المسار من المسودة
+      restoreTrackAnswers();
+
+      saveDraft();
+    }
+
+    // ========== التحقق من صحة البيانات ==========
+    function validateStep(step) {
+      let valid = true;
+
+      if (step === 0) {
+        // الخطوة 1: البيانات الشخصية
+        valid = validateRequired('name', 'الاسم مطلوب') && valid;
+        valid = validateRequired('address', 'العنوان مطلوب') && valid;
+        valid = validateWhatsApp() && valid;
+        valid = validateEmail() && valid;
+        valid = validateRequired('faculty', 'الكلية / التخصص مطلوب') && valid;
+        valid = validateRadio('academicYear', 'اختر السنة الدراسية') && valid;
+      } else if (step === 1) {
+        // الخطوة 2: الروابط والإتاحة
+        valid = validateLinks() && valid;
+        valid = validateRadio('hours', 'اختر ساعات الالتزام') && valid;
+        valid = validateRadio('compensation', 'اختر موقفك من العمل بدون مقابل') && valid;
+        valid = validateRadio('mansouraMeetings', 'اختر مدى إمكانية الحضور') && valid;
+      } else if (step === 2) {
+        // الخطوة 3: تقييم السلوك
+        valid = validateRadio('scenario1', 'اختر إجابة للسيناريو الأول') && valid;
+        valid = validateRequired('scenario1Reason', 'وضح سبب اختيارك') && valid;
+        valid = validateRequired('scenario2', 'الإجابة مطلوبة') && valid;
+        valid = validateRequired('scenario3', 'الإجابة مطلوبة') && valid;
+        valid = validateRequired('scenario4', 'الإجابة مطلوبة') && valid;
+        valid = validateRequired('scenario5', 'الإجابة مطلوبة') && valid;
+      }
+
+      return valid;
+    }
+
+    function validateRequired(name, msg) {
+      const el = document.querySelector(`[name="${name}"]`);
+      if (!el || !el.value.trim()) {
+        showError(name, msg);
+        el && el.classList.add('error');
+        return false;
+      }
+      clearError(name);
+      el.classList.remove('error');
+      return true;
+    }
+
+    function validateRadio(name, msg) {
+      const checked = document.querySelector(`input[name="${name}"]:checked`);
+      if (!checked) {
+        showError(name, msg);
+        return false;
+      }
+      clearError(name);
+      return true;
+    }
+
+    function validateWhatsApp() {
+      const el = document.querySelector('[name="whatsapp"]');
+      const val = el.value.trim();
+      if (!val) {
+        showError('whatsapp', 'رقم الواتساب مطلوب');
+        el.classList.add('error');
+        return false;
+      }
+      // التحقق من صيغة الرقم المصري
+      if (!/^01[0125]\d{8}$/.test(val)) {
+        showError('whatsapp', 'أدخل رقم مصري صحيح (01XXXXXXXXX)');
+        el.classList.add('error');
+        return false;
+      }
+      clearError('whatsapp');
+      el.classList.remove('error');
+      return true;
+    }
+
+    function validateEmail() {
+      const el = document.querySelector('[name="email"]');
+      const val = el.value.trim();
+      if (!val) {
+        showError('email', 'البريد الإلكتروني مطلوب');
+        el.classList.add('error');
+        return false;
+      }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) {
+        showError('email', 'أدخل بريد إلكتروني صحيح');
+        el.classList.add('error');
+        return false;
+      }
+      clearError('email');
+      el.classList.remove('error');
+      return true;
+    }
+
+    function validateLinks() {
+      const fields = ['github', 'linkedin', 'facebook', 'portfolio'];
+      let hasOne = false;
+      fields.forEach(f => {
+        const val = document.querySelector(`[name="${f}"]`).value.trim();
+        if (val) hasOne = true;
+      });
+      if (!hasOne) {
+        showError('links', 'أدخل رابط واحد على الأقل من الروابط أعلاه');
+        return false;
+      }
+      clearError('links');
+      return true;
+    }
+
+    function validateFinalStep() {
+      let valid = true;
+
+      // التحقق من اختيار المسار
+      if (!selectedTrack) {
+        showError('track', 'اختر المسار الذي تريده');
+        valid = false;
+      }
+
+      // التحقق من أسئلة المسار
+      if (selectedTrack) {
+        const data = trackQuestions[selectedTrack];
+        data.questions.forEach((_, i) => {
+          const name = `trackQ${i + 1}`;
+          const el = document.querySelector(`[name="${name}"]`);
+          if (!el || !el.value.trim()) {
+            showError(name, 'الإجابة مطلوبة');
+            el && el.classList.add('error');
+            valid = false;
+          } else {
+            clearError(name);
+            el.classList.remove('error');
+          }
+        });
+      }
+
+      // التحقق من خانة التأكيد
+      const checkbox = document.querySelector('[name="taskReady"]');
+      if (!checkbox.checked) {
+        showError('taskReady', 'يجب الموافقة على استلام المهمة التجريبية');
+        valid = false;
+      } else {
+        clearError('taskReady');
+      }
+
+      return valid;
+    }
+
+    function showError(name, msg) {
+      const el = document.querySelector(`.error-msg[data-for="${name}"]`);
+      if (el) {
+        el.textContent = msg;
+        el.classList.add('show');
+      }
+    }
+
+    function clearError(name) {
+      const el = document.querySelector(`.error-msg[data-for="${name}"]`);
+      if (el) {
+        el.textContent = '';
+        el.classList.remove('show');
+      }
+    }
+
+    // ========== مسح الأخطاء عند الكتابة ==========
+    document.querySelectorAll('.input-field').forEach(el => {
+      el.addEventListener('input', () => {
+        el.classList.remove('error');
+        const name = el.getAttribute('name');
+        if (name) clearError(name);
+        // مسح خطأ الروابط المجمع
+        if (['github', 'linkedin', 'facebook', 'portfolio'].includes(name)) {
+          clearError('links');
+        }
+      });
+    });
+
+    document.querySelectorAll('input[type="radio"]').forEach(el => {
+      el.addEventListener('change', () => {
+        clearError(el.getAttribute('name'));
+      });
+    });
+
+    document.querySelector('[name="taskReady"]').addEventListener('change', () => {
+      clearError('taskReady');
+    });
+
+    // ========== تطبيع الروابط (إضافة https:// تلقائياً) ==========
+    ['github', 'linkedin', 'facebook', 'portfolio'].forEach(name => {
+      const el = document.querySelector(`[name="${name}"]`);
+      el.addEventListener('blur', () => {
+        let val = el.value.trim();
+        if (val && !val.startsWith('http://') && !val.startsWith('https://')) {
+          el.value = 'https://' + val;
+        }
+      });
+    });
+
+    // ========== الحفظ التلقائي للمسودة ==========
+    function saveDraft() {
+      const form = document.getElementById('application-form');
+      const data = {};
+
+      // جمع جميع الحقول النصية
+      form.querySelectorAll('input[type="text"], input[type="tel"], input[type="email"], input[type="url"], textarea, select').forEach(el => {
+        if (el.name) data[el.name] = el.value;
+      });
+
+      // جمع خيارات الراديو
+      form.querySelectorAll('input[type="radio"]:checked').forEach(el => {
+        data[el.name] = el.value;
+      });
+
+      // خانة الاختيار
+      const taskReady = form.querySelector('[name="taskReady"]');
+      data.taskReady = taskReady.checked;
+
+      // المسار المختار
+      data.track = selectedTrack;
+
+      // الخطوة الحالية
+      data._currentStep = currentStep;
+
+      try {
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(data));
+      } catch (e) {
+        // تجاهل أخطاء localStorage
+      }
+    }
+
+    function loadDraft() {
+      try {
+        const raw = localStorage.getItem(DRAFT_KEY);
+        if (!raw) return;
+        const data = JSON.parse(raw);
+
+        const form = document.getElementById('application-form');
+
+        // استعادة الحقول النصية
+        Object.keys(data).forEach(key => {
+          if (key.startsWith('_')) return; // تخطي البيانات الوصفية
+          if (key === 'taskReady') {
+            form.querySelector('[name="taskReady"]').checked = data[key];
+            return;
+          }
+          if (key === 'track') return; // يتم التعامل معه بشكل منفصل
+
+          const el = form.querySelector(`[name="${key}"]`);
+          if (!el) return;
+
+          if (el.type === 'radio') {
+            const radio = form.querySelector(`input[name="${key}"][value="${data[key]}"]`);
+            if (radio) radio.checked = true;
+          } else {
+            el.value = data[key];
+          }
+        });
+
+        // استعادة المسار المختار
+        if (data.track && trackQuestions[data.track]) {
+          selectTrack(data.track);
+        }
+
+        // استعادة الخطوة الأخيرة
+        if (typeof data._currentStep === 'number' && data._currentStep >= 0 && data._currentStep <= 3) {
+          // الذهاب مباشرة بدون تحقق
+          currentStep = 0;
+          document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
+          document.getElementById(`step-${data._currentStep}`).classList.add('active');
+          currentStep = data._currentStep;
+
+          const fill = ((data._currentStep + 0.5) / 4) * 100;
+          document.getElementById('progress-fill').style.width = `${fill}%`;
+
+          document.querySelectorAll('.step-dot').forEach((dot, i) => {
+            dot.classList.remove('active', 'completed');
+            if (i < data._currentStep) dot.classList.add('completed');
+            else if (i === data._currentStep) dot.classList.add('active');
+          });
+        }
+      } catch (e) {
+        // تجاهل أخطاء التحليل
+      }
+    }
+
+    function restoreTrackAnswers() {
+      try {
+        const raw = localStorage.getItem(DRAFT_KEY);
+        if (!raw) return;
+        const data = JSON.parse(raw);
+
+        ['trackQ1', 'trackQ2', 'trackQ3', 'trackQ4'].forEach(key => {
+          if (data[key]) {
+            const el = document.querySelector(`[name="${key}"]`);
+            if (el) el.value = data[key];
+          }
+        });
+      } catch (e) {}
+    }
+
+    // ربط الحفظ التلقائي بجميع الحقول
+    document.querySelectorAll('input, textarea, select').forEach(el => {
+      el.addEventListener('input', saveDraft);
+      el.addEventListener('change', saveDraft);
+    });
+
+    // ========== دالة إرسال إيميل التأكيد الاحترافي للمتقدم عبر EmailJS ==========
+    async function sendConfirmationEmail(applicantData) {
+      const templateParams = {
+        to_name: applicantData.name,
+        to_email: applicantData.email,
+        track: applicantData.track,
+        app_id: applicantData.id
+      };
+
+      try {
+        const response = await emailjs.send(
+          "service_ritjbeu",   // Service ID
+          "template_aulor02",  // Template ID
+          templateParams
+        );
+        console.log("Email sent successfully:", response.status);
+        return { success: true };
+      } catch (error) {
+        console.error("EmailJS Error:", error);
+        return { success: false, error };
+      }
+    }
+
+    // ========== إرسال النموذج ==========
+    document.getElementById('application-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      // التحقق من الخطوة الأخيرة
+      if (!validateFinalStep()) return;
+
+      const submitBtn = document.getElementById('submit-btn');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `
+          <svg class="w-5 h-5 animate-spin inline-block ml-2" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          جاري إرسال التقديم...
+        `;
+      }
+
+      // جمع جميع البيانات
+      const form = this;
+      const formData = {};
+
+      form.querySelectorAll('input[type="text"], input[type="tel"], input[type="email"], input[type="url"], textarea, select').forEach(el => {
+        if (el.name) formData[el.name] = el.value.trim();
+      });
+
+      form.querySelectorAll('input[type="radio"]:checked').forEach(el => {
+        formData[el.name] = el.value;
+      });
+
+      formData.taskReady = form.querySelector('[name="taskReady"]').checked;
+      formData.track = selectedTrack;
+
+      // تقييم قواعد الاستبعاد (بصمت)
+      let status = 'pending';
+      if (formData.hours === 'أقل من 5 ساعات' || formData.compensation === 'مش مناسب لي') {
+        status = 'knockout';
+      }
+
+      // توليد رقم فريد
+      const randomNum = String(Math.floor(1000 + Math.random() * 9000));
+      const appId = `GG-2026-${randomNum}`;
+
+      // بناء الكائن النهائي مع توحيد أسماء الحقول للوحة الإدارة
+      const trackAnswersList = [formData.trackQ0, formData.trackQ1, formData.trackQ2].filter(x => x !== undefined && x !== null && x !== '');
+      const submission = {
+        id: appId,
+        status: status,
+        submittedAt: new Date().toISOString(),
+        scenario1Choice: formData.scenario1 || '',
+        scenario1Why: formData.scenario1Reason || '',
+        taskConfirm: !!formData.taskReady,
+        trackAnswers: trackAnswersList,
+        rubric: { commitment: 0, maturity: 0, trackMindset: 0 },
+        founderNotes: '',
+        ...formData
+      };
+
+      // حفظ في localStorage
+      try {
+        let applicants = JSON.parse(localStorage.getItem(APPLICANTS_KEY) || '[]');
+        applicants.push(submission);
+        localStorage.setItem(APPLICANTS_KEY, JSON.stringify(applicants));
+      } catch (e) {
+        console.error('خطأ في حفظ البيانات:', e);
+      }
+
+      // إرسال إيميل التأكيد عبر EmailJS
+      try {
+        await sendConfirmationEmail({
+          name: submission.name,
+          email: submission.email,
+          track: submission.track,
+          id: submission.id
+        });
+      } catch (err) {
+        console.error("EmailJS Error:", err);
+      }
+
+      // مسح المسودة
+      localStorage.removeItem(DRAFT_KEY);
+
+      // حفظ بيانات الإيصال
+      lastSubmission = submission;
+
+      // إظهار شاشة النجاح
+      document.getElementById('application-form').classList.add('hidden');
+      document.getElementById('success-screen').classList.remove('hidden');
+      document.getElementById('app-id-display').textContent = appId;
+
+      // إخفاء شريط التقدم
+      document.querySelector('.progress-track').parentElement.style.display = 'none';
+
+      // تمرير لأعلى
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    // ========== تحميل الإيصال ==========
+    function downloadReceipt() {
+      if (!lastSubmission) return;
+
+      const json = JSON.stringify(lastSubmission, null, 2);
+      const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${lastSubmission.id}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    // ========== تقديم جديد ==========
+    function startNewApplication() {
+      location.reload();
+    }
+
+    // ========== تحميل المسودة عند فتح الصفحة ==========
+    loadDraft();
+  </script>
+</body>
+</html>

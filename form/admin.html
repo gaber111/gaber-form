@@ -1,0 +1,1653 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gaber Group — لوحة الفرز والتقييم</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        obsidian: '#09090B',
+                        surface: 'rgba(24, 24, 27, 0.7)',
+                        amber: { 400: '#FBBF24', 500: '#F59E0B', 600: '#D97706', 700: '#B45309' },
+                        glass: 'rgba(24, 24, 27, 0.55)',
+                    },
+                    fontFamily: {
+                        cairo: ['Cairo', 'sans-serif'],
+                        ibm: ['IBM Plex Sans Arabic', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* ===== القاعدة الأساسية ===== */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+            background-color: #09090B;
+            color: #e4e4e7;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+        h1, h2, h3, h4, h5, h6, .font-heading { font-family: 'Cairo', sans-serif; }
+
+        /* ===== الشبكة المعمارية الخلفية ===== */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(245, 158, 11, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(245, 158, 11, 0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ===== تأثير إضاءة المؤشر ===== */
+        #cursor-glow {
+            position: fixed;
+            width: 420px;
+            height: 420px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(245, 158, 11, 0.07) 0%, transparent 70%);
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            z-index: 1;
+            transition: opacity 0.3s;
+        }
+
+        /* ===== أسطح الزجاج ===== */
+        .glass {
+            background: rgba(24, 24, 27, 0.55);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(245, 158, 11, 0.1);
+        }
+        .glass-strong {
+            background: rgba(24, 24, 27, 0.75);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(245, 158, 11, 0.15);
+        }
+
+        /* ===== تأثير الاهتزاز ===== */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-12px); }
+            40% { transform: translateX(12px); }
+            60% { transform: translateX(-8px); }
+            80% { transform: translateX(8px); }
+        }
+        .shake { animation: shake 0.5s ease-in-out; }
+
+        /* ===== تأثير النبض ===== */
+        @keyframes pulse-amber {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.3); }
+            50% { box-shadow: 0 0 0 8px rgba(245, 158, 11, 0); }
+        }
+        .pulse-amber { animation: pulse-amber 2s infinite; }
+
+        /* ===== ادخال PIN ===== */
+        .pin-input {
+            width: 56px; height: 64px;
+            text-align: center; font-size: 1.75rem; font-weight: 700;
+            background: rgba(24, 24, 27, 0.8);
+            border: 2px solid rgba(245, 158, 11, 0.25);
+            border-radius: 12px; color: #F59E0B;
+            outline: none; caret-color: transparent;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            font-family: 'Cairo', sans-serif;
+        }
+        .pin-input:focus {
+            border-color: #F59E0B;
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.2);
+        }
+
+        /* ===== بطاقات KPI ===== */
+        .kpi-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .kpi-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 32px rgba(245, 158, 11, 0.1);
+        }
+
+        /* ===== بطاقات المتقدمين ===== */
+        .applicant-card {
+            transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s;
+        }
+        .applicant-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+
+        /* ===== لوحة الفحص الجانبية ===== */
+        .drawer-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            z-index: 50;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.4s;
+        }
+        .drawer-overlay.open { opacity: 1; pointer-events: auto; }
+
+        .drawer-panel {
+            position: fixed; top: 0; right: auto; left: 0; bottom: 0;
+            width: min(640px, 92vw);
+            background: #0f0f12;
+            border-right: 1px solid rgba(245, 158, 11, 0.15);
+            z-index: 51;
+            transform: translateX(-100%);
+            transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-y: auto;
+            overscroll-behavior: contain;
+        }
+        .drawer-panel.open { transform: translateX(0); }
+
+        /* ===== لوحة الإعدادات ===== */
+        .settings-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            z-index: 60;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.4s;
+        }
+        .settings-overlay.open { opacity: 1; pointer-events: auto; }
+
+        .settings-panel {
+            position: fixed; top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            width: min(520px, 92vw);
+            background: #0f0f12;
+            border: 1px solid rgba(245, 158, 11, 0.2);
+            border-radius: 20px;
+            z-index: 61;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.3s, transform 0.3s;
+            max-height: 85vh; overflow-y: auto;
+        }
+        .settings-panel.open { opacity: 1; pointer-events: auto; transform: translate(-50%, -50%) scale(1); }
+
+        /* ===== تقييم النجوم ===== */
+        .star-rating { display: flex; gap: 6px; direction: ltr; }
+        .star-btn {
+            width: 36px; height: 36px; border-radius: 50%;
+            border: 2px solid rgba(245, 158, 11, 0.3);
+            background: transparent; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s; color: rgba(245, 158, 11, 0.3);
+            font-size: 1rem;
+        }
+        .star-btn.active {
+            background: rgba(245, 158, 11, 0.2);
+            border-color: #F59E0B;
+            color: #F59E0B;
+        }
+        .star-btn:hover { border-color: #F59E0B; color: #F59E0B; }
+
+        /* ===== شريط التقدم ===== */
+        .mindset-meter-bg {
+            width: 100%; height: 10px; border-radius: 999px;
+            background: rgba(255,255,255,0.08);
+            overflow: hidden;
+        }
+        .mindset-meter-fill {
+            height: 100%; border-radius: 999px;
+            transition: width 0.6s ease-out;
+        }
+
+        /* ===== تمييز العلامات ===== */
+        .flag-green {
+            background: rgba(34, 197, 94, 0.15);
+            color: #4ade80;
+            padding: 1px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+        .flag-red {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            padding: 1px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        /* ===== شريط التمرير المخصص ===== */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(245, 158, 11, 0.2); border-radius: 999px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(245, 158, 11, 0.4); }
+
+        /* ===== فلتر الأقسام ===== */
+        .pill-btn {
+            padding: 6px 16px; border-radius: 999px;
+            border: 1px solid rgba(245, 158, 11, 0.15);
+            background: transparent; color: #a1a1aa;
+            cursor: pointer; transition: all 0.25s;
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+            font-size: 0.85rem; white-space: nowrap;
+        }
+        .pill-btn:hover { border-color: rgba(245, 158, 11, 0.4); color: #e4e4e7; }
+        .pill-btn.active {
+            background: rgba(245, 158, 11, 0.15);
+            border-color: #F59E0B;
+            color: #F59E0B;
+        }
+
+        /* ===== أيقونة الحالة ===== */
+        .status-badge {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 3px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600;
+        }
+
+        /* ===== استجابة الموبايل ===== */
+        @media (max-width: 768px) {
+            .kpi-grid { grid-template-columns: repeat(2, 1fr) !important; }
+            .cards-grid { grid-template-columns: 1fr !important; }
+            .pin-input { width: 48px; height: 56px; font-size: 1.5rem; }
+            .data-bar-actions { flex-wrap: wrap; }
+        }
+        @media (max-width: 480px) {
+            .kpi-grid { grid-template-columns: 1fr !important; }
+        }
+
+        /* ===== انتقال ظهور ===== */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in-up { animation: fadeInUp 0.5s ease-out forwards; }
+
+        /* ===== إخفاء input file ===== */
+        .file-input-hidden { display: none; }
+    </style>
+</head>
+<body>
+    <!-- تأثير إضاءة المؤشر -->
+    <div id="cursor-glow"></div>
+
+    <!-- ===== شاشة قفل PIN ===== -->
+    <div id="pin-gate" class="fixed inset-0 z-[100] flex items-center justify-center" style="background: rgba(9,9,11,0.97); backdrop-filter: blur(30px);">
+        <div class="glass-strong rounded-3xl p-10 max-w-md w-full mx-4 text-center fade-in-up">
+            <!-- شعار -->
+            <div class="w-16 h-16 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center">
+                <svg class="w-8 h-8 text-obsidian" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+            </div>
+            <h2 class="font-heading text-2xl font-bold text-white mb-2">لوحة الفرز والتقييم</h2>
+            <p class="text-zinc-400 mb-8 text-sm">أدخل رمز PIN للدخول</p>
+
+            <div id="pin-container" class="flex gap-3 justify-center mb-6" dir="ltr">
+                <input type="password" maxlength="1" class="pin-input" data-idx="0" inputmode="numeric" autocomplete="off">
+                <input type="password" maxlength="1" class="pin-input" data-idx="1" inputmode="numeric" autocomplete="off">
+                <input type="password" maxlength="1" class="pin-input" data-idx="2" inputmode="numeric" autocomplete="off">
+                <input type="password" maxlength="1" class="pin-input" data-idx="3" inputmode="numeric" autocomplete="off">
+            </div>
+
+            <p id="pin-error" class="text-red-400 text-sm mb-4 opacity-0 transition-opacity duration-300">رمز PIN غير صحيح</p>
+
+            <button id="pin-submit" class="w-full py-3 rounded-xl bg-gradient-to-l from-amber-500 to-amber-600 text-obsidian font-heading font-bold text-lg hover:from-amber-400 hover:to-amber-500 transition-all duration-300 shadow-lg shadow-amber-500/20">
+                دخول
+            </button>
+        </div>
+    </div>
+
+    <!-- ===== التطبيق الرئيسي ===== -->
+    <div id="main-app" class="hidden relative z-10 min-h-screen">
+
+        <!-- ===== الشريط العلوي ===== -->
+        <header class="sticky top-0 z-40 glass-strong border-b border-amber-500/10">
+            <div class="max-w-[1440px] mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
+                <!-- الشعار والعنوان -->
+                <div class="flex items-center gap-3 shrink-0">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-obsidian" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                    </div>
+                    <div>
+                        <h1 class="font-heading font-bold text-white text-lg leading-tight">Gaber Group</h1>
+                        <p class="text-amber-500/70 text-xs">لوحة فرز الفريق التأسيسي</p>
+                    </div>
+                </div>
+
+                <!-- أزرار البيانات -->
+                <div class="flex items-center gap-2 flex-wrap data-bar-actions">
+                    <button onclick="generateDemoData()" class="px-3 py-2 rounded-lg glass text-xs font-medium text-amber-400 hover:bg-amber-500/10 transition-all flex items-center gap-1.5" title="تحميل بيانات تجريبية">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+                        <span class="hidden sm:inline">تحميل بيانات تجريبية</span>
+                    </button>
+
+                    <label class="px-3 py-2 rounded-lg glass text-xs font-medium text-blue-400 hover:bg-blue-500/10 transition-all flex items-center gap-1.5 cursor-pointer" title="استيراد JSON">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                        <span class="hidden sm:inline">استيراد JSON</span>
+                        <input type="file" accept=".json" class="file-input-hidden" onchange="importJSON(event)">
+                    </label>
+
+                    <button onclick="exportJSON()" class="px-3 py-2 rounded-lg glass text-xs font-medium text-green-400 hover:bg-green-500/10 transition-all flex items-center gap-1.5" title="تصدير JSON">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                        <span class="hidden sm:inline">تصدير JSON</span>
+                    </button>
+
+                    <button onclick="exportCSV()" class="px-3 py-2 rounded-lg glass text-xs font-medium text-purple-400 hover:bg-purple-500/10 transition-all flex items-center gap-1.5" title="تصدير CSV">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        <span class="hidden sm:inline">تصدير CSV</span>
+                    </button>
+
+                    <!-- زر الإعدادات -->
+                    <button onclick="toggleSettings()" class="p-2 rounded-lg glass text-zinc-400 hover:text-amber-400 hover:bg-amber-500/10 transition-all" title="الإعدادات">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- ===== المحتوى الرئيسي ===== -->
+        <main class="max-w-[1440px] mx-auto px-4 sm:px-6 py-6 space-y-6">
+
+            <!-- ===== بطاقات KPI ===== -->
+            <div class="kpi-grid grid grid-cols-5 gap-4" id="kpi-strip">
+                <!-- يتم إنشاؤها ديناميكياً -->
+            </div>
+
+            <!-- ===== شريط الفلاتر ===== -->
+            <div class="glass rounded-2xl p-4 space-y-4">
+                <!-- البحث -->
+                <div class="relative">
+                    <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    <input id="search-input" type="text" placeholder="بحث بالاسم أو رقم الهاتف أو الكلية..." class="w-full pr-11 pl-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-zinc-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/20 transition-all text-sm" oninput="renderApplicants()">
+                </div>
+
+                <!-- فلتر المسار -->
+                <div>
+                    <p class="text-xs text-zinc-500 mb-2 font-medium">المسار</p>
+                    <div class="flex flex-wrap gap-2" id="track-filters">
+                        <button class="pill-btn active" data-track="all" onclick="setTrackFilter('all')">الكل</button>
+                        <button class="pill-btn" data-track="Front-End" onclick="setTrackFilter('Front-End')">Front-End</button>
+                        <button class="pill-btn" data-track="Back-End" onclick="setTrackFilter('Back-End')">Back-End</button>
+                        <button class="pill-btn" data-track="UI/UX" onclick="setTrackFilter('UI/UX')">UI/UX</button>
+                        <button class="pill-btn" data-track="AI Automation" onclick="setTrackFilter('AI Automation')">AI Automation</button>
+                        <button class="pill-btn" data-track="Content Creator" onclick="setTrackFilter('Content Creator')">Content Creator</button>
+                    </div>
+                </div>
+
+                <!-- فلتر مرحلة القبول -->
+                <div>
+                    <p class="text-xs text-zinc-500 mb-2 font-medium">مرحلة القبول</p>
+                    <div class="flex flex-wrap gap-2" id="status-filters">
+                        <button class="pill-btn active" data-status="all" onclick="setStatusFilter('all')">الكل</button>
+                        <button class="pill-btn" data-status="pending" onclick="setStatusFilter('pending')">قيد المراجعة</button>
+                        <button class="pill-btn" data-status="knockout" onclick="setStatusFilter('knockout')">مستبعد آلياً</button>
+                        <button class="pill-btn" data-status="review" onclick="setStatusFilter('review')">مراجعة</button>
+                        <button class="pill-btn" data-status="interview" onclick="setStatusFilter('interview')">مؤهل للمقابلة</button>
+                        <button class="pill-btn" data-status="task" onclick="setStatusFilter('task')">مهمة تجريبية</button>
+                        <button class="pill-btn" data-status="accepted" onclick="setStatusFilter('accepted')">مقبول نهائياً</button>
+                        <button class="pill-btn" data-status="rejected" onclick="setStatusFilter('rejected')">مرفوض</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== شبكة البطاقات ===== -->
+            <div class="cards-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="applicants-grid">
+                <!-- يتم إنشاؤها ديناميكياً -->
+            </div>
+
+            <!-- رسالة فارغة -->
+            <div id="empty-state" class="hidden text-center py-16">
+                <svg class="w-16 h-16 mx-auto text-zinc-700 mb-4" fill="none" stroke="currentColor" stroke-width="1" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/></svg>
+                <h3 class="font-heading text-zinc-500 text-lg mb-2">لا يوجد متقدمين</h3>
+                <p class="text-zinc-600 text-sm">قم بتحميل بيانات تجريبية أو استيراد ملف JSON</p>
+            </div>
+        </main>
+    </div>
+
+    <!-- ===== لوحة الفحص الجانبية ===== -->
+    <div id="drawer-overlay" class="drawer-overlay" onclick="closeDrawer()"></div>
+    <div id="drawer-panel" class="drawer-panel">
+        <div id="drawer-content" class="p-6 space-y-6">
+            <!-- يتم إنشاؤها ديناميكياً -->
+        </div>
+    </div>
+
+    <!-- ===== لوحة الإعدادات ===== -->
+    <div id="settings-overlay" class="settings-overlay" onclick="toggleSettings()"></div>
+    <div id="settings-panel" class="settings-panel p-6 space-y-6">
+        <div class="flex items-center justify-between mb-2">
+            <h3 class="font-heading text-xl font-bold text-white">الإعدادات</h3>
+            <button onclick="toggleSettings()" class="p-2 rounded-lg hover:bg-white/5 text-zinc-400 hover:text-white transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+
+        <!-- تغيير PIN -->
+        <div class="space-y-3">
+            <h4 class="text-sm font-semibold text-amber-400">تغيير رمز PIN</h4>
+            <div class="space-y-2">
+                <input id="settings-current-pin" type="password" placeholder="الرمز الحالي" maxlength="4" class="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-zinc-500 focus:outline-none focus:border-amber-500/50 text-sm" inputmode="numeric">
+                <input id="settings-new-pin" type="password" placeholder="الرمز الجديد (4 أرقام)" maxlength="4" class="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-zinc-500 focus:outline-none focus:border-amber-500/50 text-sm" inputmode="numeric">
+                <button onclick="changePin()" class="w-full py-2.5 rounded-xl bg-amber-500/15 text-amber-400 font-semibold text-sm hover:bg-amber-500/25 transition-all">
+                    تحديث الرمز
+                </button>
+                <p id="pin-change-msg" class="text-xs text-center opacity-0 transition-opacity"></p>
+            </div>
+        </div>
+
+        <!-- قالب رسالة واتساب -->
+        <div class="space-y-3">
+            <h4 class="text-sm font-semibold text-amber-400">قالب رسالة WhatsApp</h4>
+            <textarea id="settings-wa-template" rows="4" class="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-zinc-500 focus:outline-none focus:border-amber-500/50 text-sm resize-none leading-relaxed" dir="rtl"></textarea>
+            <p class="text-xs text-zinc-500">المتغيرات المتاحة: <code class="text-amber-400">{name}</code> , <code class="text-amber-400">{track}</code></p>
+            <button onclick="saveWATemplate()" class="w-full py-2.5 rounded-xl bg-green-500/15 text-green-400 font-semibold text-sm hover:bg-green-500/25 transition-all">
+                حفظ القالب
+            </button>
+        </div>
+
+        <!-- مسح البيانات -->
+        <div class="space-y-3 border-t border-white/5 pt-4">
+            <h4 class="text-sm font-semibold text-red-400">منطقة الخطر</h4>
+            <button onclick="clearAllData()" class="w-full py-2.5 rounded-xl bg-red-500/15 text-red-400 font-semibold text-sm hover:bg-red-500/25 transition-all">
+                مسح جميع البيانات
+            </button>
+        </div>
+    </div>
+
+    <!-- ===== جافاسكريبت ===== -->
+    <script>
+    // =====================================================
+    // ثوابت ومفاتيح التخزين
+    // =====================================================
+    const STORAGE_KEY = 'gaber_founding_applicants_v1';
+    const PIN_KEY = 'gaber_admin_pin';
+    const WA_TEMPLATE_KEY = 'gaber_wa_template';
+    const DEFAULT_PIN = '2026';
+    const DEFAULT_WA_TEMPLATE = 'مرحباً {name}، شكراً لتقديمك في فريق تأسيس Gaber Group - مسار {track}. نود دعوتك لمقابلة شخصية لمناقشة انضمامك للفريق. هل يناسبك [التاريخ/الوقت]؟';
+
+    // =====================================================
+    // حالة التطبيق
+    // =====================================================
+    let currentTrackFilter = 'all';
+    let currentStatusFilter = 'all';
+    let currentDrawerApplicantId = null;
+
+    // =====================================================
+    // أسئلة السيناريوهات
+    // =====================================================
+    const scenarioQuestions = [
+        'عندك ديدلاين يوم الخميس، ويوم الأربعاء اكتشفت إنك مش هتخلص في المعاد. إيه أول حاجة هتعملها؟',
+        'زميلك في التيم انتقد شغلك بشكل حاد قدام باقي الفريق. إيه ردك؟',
+        'لاحظت إن زميل في الفريق مش بيشتغل وباقي الفريق بيغطّوا عليه. هتعمل إيه؟',
+        'اختلفت مع التيم ليدر في قرار وانت متأكد إنك صح. هتتعامل إزاي؟',
+        'إيه الدافع الحقيقي إنك تنضم لستارت أب في مرحلة التأسيس من غير مقابل مادي في البداية؟'
+    ];
+
+    // =====================================================
+    // أسئلة المسارات
+    // =====================================================
+    const trackQuestions = {
+        'Front-End': [
+            'لو عندك صفحة بتحمّل بطيء جداً على موبايلات المستخدمين في مصر (إنترنت ضعيف)، إيه أول 3 حاجات هتعملها لتحسين الأداء؟',
+            'كلاينت طلب تعديل في الديزاين بعد ما خلصت الكود. التعديل بسيط بصرياً بس هيأثر على هيكل الكومبوننتس. هتتعامل إزاي؟',
+            'إيه الفرق بين إنك تبني كومبوننت من الصفر وإنك تستخدم مكتبة جاهزة؟ إمتى تختار كل واحدة؟'
+        ],
+        'Back-End': [
+            'لو API بتاعتك بدأت تاخد وقت طويل في الاستجابة مع زيادة عدد المستخدمين، إيه خطوات التشخيص والحل؟',
+            'إزاي هتصمم نظام authentication آمن لتطبيق فيه أدوار مختلفة (مستخدم عادي، مشرف، أدمن)؟',
+            'قاعدة البيانات وقعت فجأة والسيستم شغال. إيه أول 3 خطوات هتاخدها؟'
+        ],
+        'UI/UX': [
+            'لو عندك فورم طويلة (زي اللي بتملاها دلوقتي 😄) إزاي هتخليها تجربة سهلة ومش مملة للمستخدم؟',
+            'كلاينت عايز ديزاين "مختلف ومبتكر" بس من غير تفاصيل واضحة. إزاي هتبدأ تشتغل؟',
+            'إيه الفرق بين UI حلوة و UX كويسة؟ ممكن يكون عندك واحدة من غير التانية؟'
+        ],
+        'AI Automation': [
+            'لو عايز تعمل أوتوميشن لعملية يدوية في شركة (مثلاً فلترة CVs)، إيه الخطوات من أول الفهم للتنفيذ؟',
+            'إيه الفرق بين إنك تستخدم AI model جاهز (API) وإنك تدرّب موديل خاص؟ إمتى تختار كل واحد؟',
+            'لو بنيت بوت بيرد على العملاء وبدأ يدي إجابات غلط، إزاي هتعالج الموضوع؟'
+        ],
+        'Content Creator': [
+            'لو عندك منتج جديد ومحتاج تعمله محتوى يوصل لطلاب جامعة. إيه خطة المحتوى بتاعتك لأول أسبوعين؟',
+            'إيه الفرق بين محتوى بيجيب Engagement ومحتوى بيجيب Conversion؟ وإزاي توازن بينهم؟',
+            'بوست اشتغلت عليه كتير منزلش زي ما توقعت. إيه أول حاجة هتعملها؟'
+        ]
+    };
+
+    // =====================================================
+    // كلمات محللة الوعي والعلامات
+    // =====================================================
+    const greenFlagKeywords = [
+        'هبلّغ', 'هتواصل', 'أبلّغ', 'أوضح', 'مسؤولية', 'أتعلم', 'أطور', 'فيدباك',
+        'بيانات', 'أرقام', 'تحليل', 'أعترف', 'أتقبل', 'هساعد', 'نتعاون', 'حل',
+        'أسأل', 'أبحث', 'أفكر', 'خطة', 'أولويات', 'أفهم', 'نقاش', 'هادي',
+        'أستمع', 'موضوعي', 'أحسن', 'أجرب', 'اختبار', 'تجربة',
+        'هبلغ', 'ابلغ', 'ابلّغ', 'هتواصل'
+    ];
+
+    const redFlagKeywords = [
+        'مش غلطتي', 'مش مسؤوليتي', 'هيزعل', 'أعصابي', 'هرد', 'مش فارق',
+        'عادي', 'مفيش مشكلة', 'أسيبه', 'مش شغلي', 'أنا صح', 'غلط',
+        'أرفض', 'هتجاهل', 'مش محتاج', 'أنا عارف', 'مش مهم', 'بلاش'
+    ];
+
+    // =====================================================
+    // دوال المساعدة
+    // =====================================================
+
+    /** قراءة المتقدمين من localStorage */
+    function getApplicants() {
+        try {
+            return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+        } catch { return []; }
+    }
+
+    /** حفظ المتقدمين في localStorage */
+    function saveApplicants(applicants) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(applicants));
+    }
+
+    /** الحصول على PIN المحفوظ */
+    function getPin() {
+        return localStorage.getItem(PIN_KEY) || DEFAULT_PIN;
+    }
+
+    /** الحصول على قالب واتساب */
+    function getWATemplate() {
+        return localStorage.getItem(WA_TEMPLATE_KEY) || DEFAULT_WA_TEMPLATE;
+    }
+
+    /** لون المسار */
+    function trackColor(track) {
+        const map = {
+            'Front-End': { bg: 'rgba(59,130,246,0.15)', text: '#60a5fa', border: 'rgba(59,130,246,0.3)' },
+            'Back-End': { bg: 'rgba(16,185,129,0.15)', text: '#34d399', border: 'rgba(16,185,129,0.3)' },
+            'UI/UX': { bg: 'rgba(168,85,247,0.15)', text: '#c084fc', border: 'rgba(168,85,247,0.3)' },
+            'AI Automation': { bg: 'rgba(245,158,11,0.15)', text: '#fbbf24', border: 'rgba(245,158,11,0.3)' },
+            'Content Creator': { bg: 'rgba(236,72,153,0.15)', text: '#f472b6', border: 'rgba(236,72,153,0.3)' }
+        };
+        return map[track] || { bg: 'rgba(161,161,170,0.15)', text: '#a1a1aa', border: 'rgba(161,161,170,0.3)' };
+    }
+
+    /** لون الحالة */
+    function statusInfo(status) {
+        const map = {
+            'pending': { label: 'قيد المراجعة', bg: 'rgba(250,204,21,0.12)', text: '#facc15', icon: '⏳' },
+            'knockout': { label: 'مستبعد آلياً', bg: 'rgba(239,68,68,0.12)', text: '#f87171', icon: '🚫' },
+            'review': { label: 'مراجعة', bg: 'rgba(96,165,250,0.12)', text: '#60a5fa', icon: '📋' },
+            'interview': { label: 'مؤهل للمقابلة', bg: 'rgba(52,211,153,0.12)', text: '#34d399', icon: '🎙️' },
+            'task': { label: 'مهمة تجريبية', bg: 'rgba(168,85,247,0.12)', text: '#c084fc', icon: '📝' },
+            'accepted': { label: 'مقبول نهائياً', bg: 'rgba(34,197,94,0.12)', text: '#22c55e', icon: '✅' },
+            'rejected': { label: 'مرفوض', bg: 'rgba(239,68,68,0.12)', text: '#ef4444', icon: '❌' }
+        };
+        return map[status] || { label: status, bg: 'rgba(161,161,170,0.12)', text: '#a1a1aa', icon: '❔' };
+    }
+
+    /** لون تقييم الوعي */
+    function mindsetColor(score) {
+        if (score > 70) return { bg: 'rgba(34,197,94,0.15)', text: '#4ade80' };
+        if (score >= 40) return { bg: 'rgba(245,158,11,0.15)', text: '#fbbf24' };
+        return { bg: 'rgba(239,68,68,0.15)', text: '#f87171' };
+    }
+
+    // =====================================================
+    // محلل الوعي والعلامات الحمراء/الخضراء
+    // =====================================================
+    function analyzeMindset(applicant) {
+        // جمع كل النصوص السلوكية
+        const texts = [];
+        const s1Why = applicant.scenario1Why || applicant.scenario1Reason;
+        if (s1Why) texts.push(s1Why);
+        if (applicant.scenario2) texts.push(applicant.scenario2);
+        if (applicant.scenario3) texts.push(applicant.scenario3);
+        if (applicant.scenario4) texts.push(applicant.scenario4);
+        if (applicant.scenario5) texts.push(applicant.scenario5);
+        const tAnsList = (applicant.trackAnswers && Array.isArray(applicant.trackAnswers) && applicant.trackAnswers.length)
+            ? applicant.trackAnswers
+            : [applicant.trackQ0, applicant.trackQ1, applicant.trackQ2].filter(Boolean);
+        tAnsList.forEach(a => { if (a) texts.push(a); });
+        const allText = texts.join(' ');
+
+        // البحث عن العلامات
+        const foundGreen = [];
+        const foundRed = [];
+
+        greenFlagKeywords.forEach(kw => {
+            if (allText.includes(kw) && !foundGreen.includes(kw)) {
+                foundGreen.push(kw);
+            }
+        });
+
+        redFlagKeywords.forEach(kw => {
+            if (allText.includes(kw) && !foundRed.includes(kw)) {
+                foundRed.push(kw);
+            }
+        });
+
+        // حساب النتيجة
+        let score = 50;
+        score += foundGreen.length * 5;
+        score -= foundRed.length * 7;
+
+        // تعديل بناء على اختيار السيناريو 1
+        const s1 = String(applicant.scenario1Choice || applicant.scenario1 || '');
+        if (s1.includes('هبلّغ') || s1.includes('أبلّغ') || s1 === 'choice1' || s1 === '1') {
+            score += 15;
+        } else if (s1.includes('هستنى') || s1.includes('أستنى') || s1 === 'choice3' || s1 === '3') {
+            score -= 15;
+        } else if (s1.includes('تاني') || s1.includes('أدّي') || s1 === 'choice4' || s1 === '4') {
+            score -= 10;
+        }
+
+        // تقييد النتيجة
+        score = Math.max(0, Math.min(100, score));
+
+        // تحديث بيانات المتقدم
+        applicant.mindsetScore = score;
+        applicant.greenFlags = foundGreen;
+        applicant.redFlags = foundRed;
+
+        return applicant;
+    }
+
+    /** تشغيل المحلل على جميع المتقدمين */
+    function analyzeAllApplicants() {
+        const applicants = getApplicants();
+        const analyzed = applicants.map(a => analyzeMindset(a));
+        saveApplicants(analyzed);
+        return analyzed;
+    }
+
+    // =====================================================
+    // بطاقات KPI
+    // =====================================================
+    function renderKPIs() {
+        const applicants = getApplicants();
+        const total = applicants.length;
+        const qualified = applicants.filter(a => a.status !== 'knockout').length;
+        const knockout = applicants.filter(a => a.status === 'knockout').length;
+        const interview = applicants.filter(a => a.status === 'interview').length;
+
+        // متوسط التقييم
+        const rated = applicants.filter(a => a.rubric && (a.rubric.commitment > 0 || a.rubric.maturity > 0 || a.rubric.trackMindset > 0));
+        let avgScore = 0;
+        if (rated.length > 0) {
+            const sum = rated.reduce((acc, a) => {
+                const r = a.rubric;
+                return acc + (r.commitment + r.maturity + r.trackMindset) / 3;
+            }, 0);
+            avgScore = (sum / rated.length).toFixed(1);
+        }
+
+        const kpis = [
+            { label: 'إجمالي المتقدمين', value: total, icon: '<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>', color: '#60a5fa' },
+            { label: 'مؤهل للمراجعة', value: qualified, icon: '<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>', color: '#34d399' },
+            { label: 'مستبعد آلياً', value: knockout, icon: '<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>', color: '#f87171' },
+            { label: 'مؤهل للمقابلة', value: interview, icon: '<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>', color: '#a78bfa' },
+            { label: 'متوسط التقييم', value: rated.length > 0 ? avgScore : '—', icon: '<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>', color: '#fbbf24' },
+        ];
+
+        document.getElementById('kpi-strip').innerHTML = kpis.map(k => `
+            <div class="kpi-card glass rounded-2xl p-4 text-center">
+                <div class="inline-flex items-center justify-center w-10 h-10 rounded-xl mb-3" style="background: ${k.color}15; color: ${k.color}">
+                    ${k.icon}
+                </div>
+                <div class="text-2xl font-heading font-bold text-white">${k.value}</div>
+                <div class="text-xs text-zinc-400 mt-1">${k.label}</div>
+            </div>
+        `).join('');
+    }
+
+    // =====================================================
+    // شبكة بطاقات المتقدمين
+    // =====================================================
+    function renderApplicants() {
+        const applicants = getApplicants();
+        const searchVal = (document.getElementById('search-input')?.value || '').trim().toLowerCase();
+
+        // تطبيق الفلاتر
+        let filtered = applicants.filter(a => {
+            // فلتر المسار
+            if (currentTrackFilter !== 'all' && a.track !== currentTrackFilter) return false;
+            // فلتر الحالة
+            if (currentStatusFilter !== 'all' && a.status !== currentStatusFilter) return false;
+            // فلتر البحث
+            if (searchVal) {
+                const haystack = [a.name, a.whatsapp, a.altPhone, a.faculty, a.email].filter(Boolean).join(' ').toLowerCase();
+                if (!haystack.includes(searchVal)) return false;
+            }
+            return true;
+        });
+
+        const grid = document.getElementById('applicants-grid');
+        const empty = document.getElementById('empty-state');
+
+        if (filtered.length === 0) {
+            grid.innerHTML = '';
+            empty.classList.remove('hidden');
+            return;
+        }
+
+        empty.classList.add('hidden');
+
+        grid.innerHTML = filtered.map(a => {
+            const tc = trackColor(a.track);
+            const si = statusInfo(a.status);
+            const mc = mindsetColor(a.mindsetScore || 0);
+
+            return `
+            <div class="applicant-card glass rounded-2xl p-5 cursor-pointer space-y-3" onclick="openDrawer('${a.id}')">
+                <!-- الاسم والمسار -->
+                <div class="flex items-start justify-between gap-2">
+                    <div>
+                        <h3 class="font-heading font-bold text-white text-base leading-tight">${a.name || '—'}</h3>
+                        <p class="text-xs text-zinc-500 mt-0.5">${a.faculty || ''} ${a.academicYear ? '• ' + a.academicYear : ''}</p>
+                    </div>
+                    <span class="shrink-0 px-2.5 py-1 rounded-lg text-xs font-semibold" style="background:${tc.bg}; color:${tc.text}; border: 1px solid ${tc.border}">
+                        ${a.track || '—'}
+                    </span>
+                </div>
+
+                <!-- المحافظة -->
+                <div class="flex items-center gap-1.5 text-zinc-400 text-xs">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    ${a.governorate || '—'}
+                </div>
+
+                <!-- الشارات السفلية -->
+                <div class="flex items-center justify-between gap-2 pt-1">
+                    <!-- تقييم الوعي -->
+                    <span class="px-2.5 py-1 rounded-lg text-xs font-bold" style="background:${mc.bg}; color:${mc.text}">
+                        ${a.mindsetScore != null ? a.mindsetScore + '%' : '—'}
+                    </span>
+                    <!-- الحالة -->
+                    <span class="status-badge" style="background:${si.bg}; color:${si.text}">
+                        ${si.icon} ${si.label}
+                    </span>
+                </div>
+
+                <!-- زر التفاصيل -->
+                <button class="w-full mt-2 py-2 rounded-xl bg-amber-500/10 text-amber-400 text-xs font-semibold hover:bg-amber-500/20 transition-all">
+                    عرض التفاصيل
+                </button>
+            </div>
+            `;
+        }).join('');
+    }
+
+    // =====================================================
+    // فلاتر
+    // =====================================================
+    function setTrackFilter(track) {
+        currentTrackFilter = track;
+        document.querySelectorAll('#track-filters .pill-btn').forEach(b => {
+            b.classList.toggle('active', b.dataset.track === track);
+        });
+        renderApplicants();
+    }
+
+    function setStatusFilter(status) {
+        currentStatusFilter = status;
+        document.querySelectorAll('#status-filters .pill-btn').forEach(b => {
+            b.classList.toggle('active', b.dataset.status === status);
+        });
+        renderApplicants();
+    }
+
+    // =====================================================
+    // لوحة الفحص الجانبية
+    // =====================================================
+    function openDrawer(id) {
+        currentDrawerApplicantId = id;
+        const applicants = getApplicants();
+        const a = applicants.find(x => x.id === id);
+        if (!a) return;
+
+        const tc = trackColor(a.track);
+        const si = statusInfo(a.status);
+        const mc = mindsetColor(a.mindsetScore || 0);
+        const waTemplate = getWATemplate();
+
+        // تنسيق رقم واتساب
+        let waNumber = (a.whatsapp || '').replace(/\D/g, '');
+        if (waNumber.startsWith('0')) waNumber = waNumber.substring(1);
+        waNumber = '20' + waNumber;
+
+        const waMessage = encodeURIComponent(
+            waTemplate.replace('{name}', a.name || '').replace('{track}', a.track || '')
+        );
+
+        // تمييز العلامات في النص
+        function highlightFlags(text) {
+            if (!text) return '<span class="text-zinc-500">—</span>';
+            let result = text;
+            // تمييز العلامات الحمراء أولاً (أطول الكلمات أولاً)
+            const sortedRed = [...(a.redFlags || [])].sort((x, y) => y.length - x.length);
+            sortedRed.forEach(kw => {
+                const regex = new RegExp(kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+                result = result.replace(regex, `<span class="flag-red">${kw}</span>`);
+            });
+            const sortedGreen = [...(a.greenFlags || [])].sort((x, y) => y.length - x.length);
+            sortedGreen.forEach(kw => {
+                // لا نعيد التمييز إذا كان مميز بالفعل
+                if (result.includes(`"flag-red">${kw}<`)) return;
+                const regex = new RegExp(kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+                result = result.replace(regex, `<span class="flag-green">${kw}</span>`);
+            });
+            return result;
+        }
+
+        // بناء روابط الأيقونات
+        const links = [];
+        if (a.github) links.push(`<a href="${a.github}" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg glass text-xs font-medium text-zinc-300 hover:text-white hover:border-white/20 transition-all"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>GitHub</a>`);
+        if (a.linkedin) links.push(`<a href="${a.linkedin}" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg glass text-xs font-medium text-blue-400 hover:text-blue-300 hover:border-blue-400/20 transition-all"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>LinkedIn</a>`);
+        if (a.facebook) links.push(`<a href="${a.facebook}" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg glass text-xs font-medium text-blue-300 hover:text-blue-200 hover:border-blue-300/20 transition-all"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>Facebook</a>`);
+        if (a.portfolio) links.push(`<a href="${a.portfolio}" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg glass text-xs font-medium text-amber-400 hover:text-amber-300 hover:border-amber-400/20 transition-all"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>Portfolio</a>`);
+
+        // بناء أسئلة المسار
+        const tq = trackQuestions[a.track] || [];
+        const tAnsArray = (a.trackAnswers && Array.isArray(a.trackAnswers) && a.trackAnswers.length)
+            ? a.trackAnswers
+            : [a.trackQ0, a.trackQ1, a.trackQ2].filter(Boolean);
+        const trackAnswersHTML = tq.map((q, i) => `
+            <div class="space-y-1.5">
+                <p class="text-xs text-amber-400/80 font-medium">${q}</p>
+                <p class="text-sm text-zinc-300 leading-relaxed bg-white/[0.03] rounded-lg p-3">${tAnsArray && tAnsArray[i] ? highlightFlags(tAnsArray[i]) : '<span class="text-zinc-600">لا توجد إجابة</span>'}</p>
+            </div>
+        `).join('');
+
+        // تقييم الروبريك الحالي
+        const rubric = a.rubric || { commitment: 0, maturity: 0, trackMindset: 0 };
+        const rubricAvg = ((rubric.commitment + rubric.maturity + rubric.trackMindset) / 3).toFixed(1);
+
+        // بناء نجوم التقييم
+        function buildStars(criterion, value) {
+            let html = '<div class="star-rating">';
+            for (let i = 1; i <= 5; i++) {
+                html += `<button class="star-btn ${i <= value ? 'active' : ''}" onclick="setRubric('${a.id}', '${criterion}', ${i})">
+                    ${i}
+                </button>`;
+            }
+            html += '</div>';
+            return html;
+        }
+
+        // بناء حالة البايبلاين
+        const statusOptions = [
+            { value: 'pending', label: 'قيد المراجعة' },
+            { value: 'knockout', label: 'مستبعد آلياً' },
+            { value: 'review', label: 'مراجعة' },
+            { value: 'interview', label: 'مؤهل للمقابلة' },
+            { value: 'task', label: 'مهمة تجريبية' },
+            { value: 'accepted', label: 'مقبول نهائياً' },
+            { value: 'rejected', label: 'مرفوض' },
+        ];
+
+        const content = `
+        <!-- رأس اللوحة -->
+        <div class="flex items-center justify-between mb-4">
+            <button onclick="closeDrawer()" class="p-2 rounded-lg hover:bg-white/5 text-zinc-400 hover:text-white transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+            <span class="px-3 py-1.5 rounded-lg text-xs font-mono font-semibold text-zinc-500 glass">${a.id}</span>
+        </div>
+
+        <!-- الاسم والمسار -->
+        <div class="text-center mb-6">
+            <div class="w-16 h-16 rounded-2xl mx-auto mb-3 flex items-center justify-center text-2xl font-heading font-bold" style="background:${tc.bg}; color:${tc.text}; border: 2px solid ${tc.border}">
+                ${(a.name || '؟').charAt(0)}
+            </div>
+            <h2 class="font-heading text-xl font-bold text-white">${a.name || '—'}</h2>
+            <span class="inline-block mt-1 px-3 py-1 rounded-lg text-xs font-semibold" style="background:${tc.bg}; color:${tc.text}; border: 1px solid ${tc.border}">
+                ${a.track || '—'}
+            </span>
+        </div>
+
+        <!-- قسم: البيانات الشخصية -->
+        <div class="space-y-1 mb-6">
+            <h4 class="font-heading font-bold text-amber-400 text-sm border-b border-amber-500/15 pb-2 mb-3">📋 البيانات الشخصية</h4>
+            <div class="grid grid-cols-2 gap-3 text-sm">
+                <div><span class="text-zinc-500 text-xs">المحافظة</span><p class="text-white">${a.governorate || '—'}</p></div>
+                <div><span class="text-zinc-500 text-xs">العنوان التفصيلي</span><p class="text-white">${a.address || '—'}</p></div>
+                <div><span class="text-zinc-500 text-xs">الكلية</span><p class="text-white">${a.faculty || '—'}</p></div>
+                <div><span class="text-zinc-500 text-xs">السنة الدراسية</span><p class="text-white">${a.academicYear || '—'}</p></div>
+                <div><span class="text-zinc-500 text-xs">واتساب</span><p class="text-white" dir="ltr">${a.whatsapp || '—'}</p></div>
+                <div><span class="text-zinc-500 text-xs">هاتف بديل</span><p class="text-white" dir="ltr">${a.altPhone || '—'}</p></div>
+                <div class="col-span-2"><span class="text-zinc-500 text-xs">البريد الإلكتروني</span><p class="text-white" dir="ltr">${a.email || '—'}</p></div>
+                <div class="col-span-2"><span class="text-zinc-500 text-xs">حضور المنصورة</span><p class="text-white">${a.mansouraMeetings || '—'}</p></div>
+            </div>
+        </div>
+
+        <!-- قسم: الروابط -->
+        ${links.length > 0 ? `
+        <div class="mb-6">
+            <h4 class="font-heading font-bold text-amber-400 text-sm border-b border-amber-500/15 pb-2 mb-3">🔗 الروابط</h4>
+            <div class="flex flex-wrap gap-2">${links.join('')}</div>
+        </div>
+        ` : ''}
+
+        <!-- قسم: 1-Click WhatsApp -->
+        <div class="mb-6">
+            <h4 class="font-heading font-bold text-amber-400 text-sm border-b border-amber-500/15 pb-2 mb-3">💬 تواصل سريع</h4>
+            <a href="https://wa.me/${waNumber}?text=${waMessage}" target="_blank" class="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-white font-semibold text-sm transition-all hover:opacity-90" style="background: #25D366;">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                مراسلة عبر WhatsApp
+            </a>
+        </div>
+
+        <!-- قسم: الإتاحة والالتزام -->
+        <div class="mb-6">
+            <h4 class="font-heading font-bold text-amber-400 text-sm border-b border-amber-500/15 pb-2 mb-3">⏰ الإتاحة والالتزام</h4>
+            <div class="space-y-2 text-sm">
+                <div class="flex justify-between"><span class="text-zinc-500">ساعات الإتاحة أسبوعياً</span><span class="text-white">${a.hours || '—'}</span></div>
+                <div class="flex justify-between"><span class="text-zinc-500">المقابل المادي</span><span class="text-white">${a.compensation || '—'}</span></div>
+                <div><span class="text-zinc-500 text-xs">عوائق أو ملاحظات</span><p class="text-white mt-1">${a.blockers || '—'}</p></div>
+            </div>
+        </div>
+
+        <!-- قسم: تقييم السلوك -->
+        <div class="mb-6">
+            <h4 class="font-heading font-bold text-amber-400 text-sm border-b border-amber-500/15 pb-2 mb-3">🧠 تقييم السلوك</h4>
+
+            <!-- مقياس الوعي -->
+            <div class="glass rounded-xl p-4 mb-4">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs text-zinc-400">مقياس استقرار الوعي</span>
+                    <span class="text-lg font-heading font-bold" style="color:${mc.text}">${a.mindsetScore != null ? a.mindsetScore + '%' : '—'}</span>
+                </div>
+                <div class="mindset-meter-bg">
+                    <div class="mindset-meter-fill" style="width:${a.mindsetScore || 0}%; background:${mc.text}"></div>
+                </div>
+                ${(a.greenFlags && a.greenFlags.length > 0) ? `
+                <div class="mt-3">
+                    <span class="text-xs text-green-400 font-semibold">علامات خضراء:</span>
+                    <div class="flex flex-wrap gap-1 mt-1">${a.greenFlags.map(f => `<span class="flag-green text-xs">${f}</span>`).join('')}</div>
+                </div>` : ''}
+                ${(a.redFlags && a.redFlags.length > 0) ? `
+                <div class="mt-2">
+                    <span class="text-xs text-red-400 font-semibold">علامات حمراء:</span>
+                    <div class="flex flex-wrap gap-1 mt-1">${a.redFlags.map(f => `<span class="flag-red text-xs">${f}</span>`).join('')}</div>
+                </div>` : ''}
+            </div>
+
+            <!-- السيناريو 1 (اختيار) -->
+            <div class="space-y-4">
+                <div class="space-y-1.5">
+                    <p class="text-xs text-amber-400/80 font-medium">السيناريو 1: ${scenarioQuestions[0]}</p>
+                    <p class="text-sm text-zinc-300 leading-relaxed bg-white/[0.03] rounded-lg p-3">
+                        <span class="text-zinc-500 text-xs block mb-1">الاختيار:</span>
+                        ${a.scenario1Choice || a.scenario1 || '<span class="text-zinc-600">—</span>'}
+                    </p>
+                    <p class="text-sm text-zinc-300 leading-relaxed bg-white/[0.03] rounded-lg p-3">
+                        <span class="text-zinc-500 text-xs block mb-1">السبب:</span>
+                        ${highlightFlags(a.scenario1Why || a.scenario1Reason || '')}
+                    </p>
+                </div>
+
+                <div class="space-y-1.5">
+                    <p class="text-xs text-amber-400/80 font-medium">السيناريو 2: ${scenarioQuestions[1]}</p>
+                    <p class="text-sm text-zinc-300 leading-relaxed bg-white/[0.03] rounded-lg p-3">${highlightFlags(a.scenario2)}</p>
+                </div>
+
+                <div class="space-y-1.5">
+                    <p class="text-xs text-amber-400/80 font-medium">السيناريو 3: ${scenarioQuestions[2]}</p>
+                    <p class="text-sm text-zinc-300 leading-relaxed bg-white/[0.03] rounded-lg p-3">${highlightFlags(a.scenario3)}</p>
+                </div>
+
+                <div class="space-y-1.5">
+                    <p class="text-xs text-amber-400/80 font-medium">السيناريو 4: ${scenarioQuestions[3]}</p>
+                    <p class="text-sm text-zinc-300 leading-relaxed bg-white/[0.03] rounded-lg p-3">${highlightFlags(a.scenario4)}</p>
+                </div>
+
+                <div class="space-y-1.5">
+                    <p class="text-xs text-amber-400/80 font-medium">السيناريو 5: ${scenarioQuestions[4]}</p>
+                    <p class="text-sm text-zinc-300 leading-relaxed bg-white/[0.03] rounded-lg p-3">${highlightFlags(a.scenario5)}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- قسم: إجابات المسار -->
+        <div class="mb-6">
+            <h4 class="font-heading font-bold text-amber-400 text-sm border-b border-amber-500/15 pb-2 mb-3">🎯 إجابات المسار — ${a.track || ''}</h4>
+            <div class="space-y-4">${trackAnswersHTML || '<p class="text-zinc-600 text-sm">لا توجد إجابات</p>'}</div>
+        </div>
+
+        <!-- قسم: التقييم التفاعلي -->
+        <div class="mb-6">
+            <h4 class="font-heading font-bold text-amber-400 text-sm border-b border-amber-500/15 pb-2 mb-3">⭐ التقييم التفاعلي</h4>
+
+            <div class="space-y-4">
+                <div>
+                    <p class="text-xs text-zinc-400 mb-1.5">الالتزام والصدق</p>
+                    ${buildStars('commitment', rubric.commitment)}
+                </div>
+                <div>
+                    <p class="text-xs text-zinc-400 mb-1.5">النضج السلوكي</p>
+                    ${buildStars('maturity', rubric.maturity)}
+                </div>
+                <div>
+                    <p class="text-xs text-zinc-400 mb-1.5">عقلية المسار</p>
+                    ${buildStars('trackMindset', rubric.trackMindset)}
+                </div>
+
+                <div class="glass rounded-xl p-4 text-center">
+                    <span class="text-xs text-zinc-500">المتوسط المرجح</span>
+                    <p class="text-3xl font-heading font-bold text-amber-400 mt-1" id="rubric-avg-display">${rubricAvg > 0 ? rubricAvg : '—'}</p>
+                    <p class="text-xs text-zinc-500">من 5</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ملاحظات المؤسس -->
+        <div class="mb-6">
+            <h4 class="font-heading font-bold text-amber-400 text-sm border-b border-amber-500/15 pb-2 mb-3">📝 ملاحظات المؤسس</h4>
+            <textarea id="founder-notes" rows="4" class="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-zinc-500 focus:outline-none focus:border-amber-500/50 text-sm resize-none leading-relaxed" placeholder="اكتب ملاحظاتك هنا..." oninput="saveFounderNotes('${a.id}')">${a.founderNotes || ''}</textarea>
+        </div>
+
+        <!-- مرحلة القبول -->
+        <div class="mb-6">
+            <h4 class="font-heading font-bold text-amber-400 text-sm border-b border-amber-500/15 pb-2 mb-3">🔄 مرحلة القبول</h4>
+            <select id="status-select" class="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-amber-500/50 text-sm" onchange="changeStatus('${a.id}')">
+                ${statusOptions.map(o => `<option value="${o.value}" ${a.status === o.value ? 'selected' : ''} style="background:#18181b">${o.label}</option>`).join('')}
+            </select>
+        </div>
+        `;
+
+        document.getElementById('drawer-content').innerHTML = content;
+        document.getElementById('drawer-overlay').classList.add('open');
+        document.getElementById('drawer-panel').classList.add('open');
+    }
+
+    function closeDrawer() {
+        document.getElementById('drawer-overlay').classList.remove('open');
+        document.getElementById('drawer-panel').classList.remove('open');
+        currentDrawerApplicantId = null;
+    }
+
+    // =====================================================
+    // تقييم الروبريك
+    // =====================================================
+    function setRubric(id, criterion, value) {
+        const applicants = getApplicants();
+        const idx = applicants.findIndex(a => a.id === id);
+        if (idx === -1) return;
+
+        if (!applicants[idx].rubric) applicants[idx].rubric = { commitment: 0, maturity: 0, trackMindset: 0 };
+        applicants[idx].rubric[criterion] = value;
+        saveApplicants(applicants);
+
+        // إعادة فتح اللوحة لتحديث العرض
+        openDrawer(id);
+        renderKPIs();
+    }
+
+    // =====================================================
+    // حفظ ملاحظات المؤسس
+    // =====================================================
+    function saveFounderNotes(id) {
+        const applicants = getApplicants();
+        const idx = applicants.findIndex(a => a.id === id);
+        if (idx === -1) return;
+
+        applicants[idx].founderNotes = document.getElementById('founder-notes')?.value || '';
+        saveApplicants(applicants);
+    }
+
+    // =====================================================
+    // تغيير الحالة
+    // =====================================================
+    function changeStatus(id) {
+        const applicants = getApplicants();
+        const idx = applicants.findIndex(a => a.id === id);
+        if (idx === -1) return;
+
+        applicants[idx].status = document.getElementById('status-select')?.value || 'pending';
+        saveApplicants(applicants);
+        renderApplicants();
+        renderKPIs();
+    }
+
+    // =====================================================
+    // توليد البيانات التجريبية
+    // =====================================================
+    function generateDemoData() {
+        const demoApplicants = [
+            {
+                id: 'GG-2026-0001',
+                name: 'أحمد محمد عبد الرحمن',
+                governorate: 'الدقهلية',
+                address: 'المنصورة، شارع الجمهورية، عمارة 15',
+                whatsapp: '01012345678',
+                altPhone: '01112345678',
+                email: 'ahmed.m.abdelrahman@gmail.com',
+                faculty: 'هندسة حاسبات ونظم - جامعة المنصورة',
+                academicYear: 'الفرقة الثالثة',
+                github: 'https://github.com/ahmed-mabdelrahman',
+                linkedin: 'https://linkedin.com/in/ahmed-mabdelrahman',
+                facebook: 'https://facebook.com/ahmed.mabdelrahman',
+                portfolio: 'https://ahmed-dev.vercel.app',
+                hours: '20-25 ساعة أسبوعياً',
+                compensation: 'مفيش مشكلة أشتغل من غير مقابل في البداية، المهم أتعلم وأبني portfolio حقيقي',
+                mansouraMeetings: 'أقدر أحضر اجتماعات أسبوعية في المنصورة',
+                blockers: 'عندي امتحانات نص السنة في يناير بس هقدر أنظم وقتي',
+                scenario1Choice: 'أبلّغ التيم ليدر أو المسؤول فوراً وأوضّح الموقف',
+                scenario1Why: 'لأن مسؤولية إني أبلّغ بدري أحسن ما أستنى اللحظة الأخيرة. هبلّغ وأوضح إيه اللي خلّصته وإيه المتبقي، وأطلب مساعدة أو تمديد لو ممكن. الشفافية أهم من إني أحاول ألحق لوحدي.',
+                scenario2: 'هاخد نفس وأستمع كويس للنقد. لو فيه حاجة صح هتقبلها وأحسن شغلي. لو حاسس إن الأسلوب كان حاد، هتكلم معاه بشكل هادي بعدين في الخاص وأوضحله إن فيدباك أفضل لو كان private. المهم أتعلم من أي فيدباك.',
+                scenario3: 'هتكلم مع الزميل الأول بشكل خاص وأفهم لو عنده مشكلة. لو مفيش تحسن هبلّغ التيم ليدر لأن ده مسؤولية الكل.',
+                scenario4: 'هقدم وجهة نظري ببيانات وأرقام وأمثلة. لو التيم ليدر لسه مقتنع برأيه، هحترم القرار وأنفذه لأن مفيش فريق بينجح من غير نقاش موضوعي واحترام للقيادة.',
+                scenario5: 'عايز أتعلم وأطور نفسي في بيئة حقيقية مش مجرد كورسات. أنا بأفكر إن الخبرة والتجربة العملية دي أهم من أي مقابل مادي في البداية. عايز أبني حاجة من الصفر وأحس إني جزء من حاجة كبيرة.',
+                track: 'Front-End',
+                trackAnswers: [
+                    'أول حاجة هعملها هي تحليل الأداء باستخدام Lighthouse. بعدين هشتغل على lazy loading للصور والكومبوننتس. تاني حاجة هستخدم code splitting عشان أقلل حجم الـ bundle. تالت حاجة هعمل caching strategy كويسة وأستخدم service worker.',
+                    'هقعد مع الكلاينت أفهم التعديل بالظبط. لو هيأثر على هيكل الكومبوننتس هوضح ده وأعمل خطة للتعديل بحيث مأثرش على باقي الكومبوننتس. هستخدم component composition عشان أخلي الكود flexible.',
+                    'بناء كومبوننت من الصفر أفضل لما يكون عندك design system خاص أو المكتبة الجاهزة مش بتغطي الـ use case بتاعك. المكتبة الجاهزة أفضل لما تكون محتاج سرعة في التنفيذ والمكتبة بتغطي 80% من الاحتياجات. المهم أختبار الاتنين وأفكر في الـ trade-offs.'
+                ],
+                taskConfirm: true,
+                status: 'pending',
+                submittedAt: new Date(Date.now() - 86400000 * 2).toISOString(),
+                rubric: { commitment: 0, maturity: 0, trackMindset: 0 },
+                founderNotes: '',
+                mindsetScore: 0,
+                greenFlags: [],
+                redFlags: []
+            },
+            {
+                id: 'GG-2026-0002',
+                name: 'سارة خالد المنصوري',
+                governorate: 'القاهرة',
+                address: 'مدينة نصر، الحي الثامن',
+                whatsapp: '01098765432',
+                altPhone: '',
+                email: 'sara.k.mansouri@outlook.com',
+                faculty: 'فنون جميلة - جامعة حلوان',
+                academicYear: 'الفرقة الرابعة',
+                github: '',
+                linkedin: 'https://linkedin.com/in/sara-mansouri-ux',
+                facebook: 'https://facebook.com/sara.mansouri.design',
+                portfolio: 'https://www.behance.net/saramansouri',
+                hours: '15-20 ساعة أسبوعياً',
+                compensation: 'مش محتاجة مقابل مادي دلوقتي، بس عايزة equity أو حصة لو الشركة نجحت',
+                mansouraMeetings: 'أقدر أحضر أونلاين بس السفر للمنصورة صعب عليا كل أسبوع',
+                blockers: 'عندي تدريب صيفي ممكن ياخد وقت في يوليو',
+                scenario1Choice: 'أبلّغ التيم ليدر أو المسؤول فوراً وأوضّح الموقف',
+                scenario1Why: 'أبلّغ فوراً وأوضح الموقف بشفافية. هقترح حل بديل أو أطلب إن حد يساعدني في جزء من الشغل. المهم التيم يعرف بدري عشان يقدر يتعامل مع الموقف.',
+                scenario2: 'أستمع للنقد وأحاول أفهم وجهة نظره. لو النقد فيه جزء صح هتقبله وأتعلم منه. لكن هتكلم معاه بعدين إن الأسلوب ممكن يكون أفضل لو كان في نقاش هادي مش قدام الكل.',
+                scenario3: 'هتكلم مع الزميل في الخاص أول حاجة وأسأله لو عنده مشكلة أو محتاج مساعدة. مش هينفع أسيبه لأن ده بيأثر على الفريق كله. لو مفيش تحسن هبلّغ المسؤول.',
+                scenario4: 'هقدم رأيي بوضوح مع أمثلة وتحليل. لو التيم ليدر مقتنع برأي تاني وعنده أسباب وجيهة، هنفذ قراره لأن الفريق محتاج unity.',
+                scenario5: 'عايزة أشتغل في بيئة startup عشان أتعلم أسرع وأبني حاجات حقيقية. في الشركات الكبيرة بتبقى مجرد ترس في ماكينة، لكن هنا هتعلم كل حاجة.',
+                track: 'UI/UX',
+                trackAnswers: [
+                    'هقسم الفورم لخطوات (multi-step) وأستخدم progress bar عشان المستخدم يحس إنه بيتقدم. كل خطة فيها 3-4 أسئلة بس. هستخدم auto-save و micro-interactions عشان التجربة تكون ممتعة.',
+                    'هبدأ أسأل أسئلة عشان أفهم "مختلف" يعني إيه بالنسباله. هعمل mood board وأعرضه على الكلاينت عشان نتفق على الاتجاه. بعدين أعمل 2-3 concepts مختلفة ونختار مع بعض.',
+                    'UI حلوة يعني الشكل جذاب بصرياً، لكن UX كويسة يعني المستخدم قدر يحقق هدفه بسهولة. ممكن يكون عندك UI حلوة بس UX وحشة لو المستخدم مش لاقي الزر اللي محتاجه. والعكس ممكن يكون UX كويسة بس الشكل مش جذاب.'
+                ],
+                taskConfirm: true,
+                status: 'pending',
+                submittedAt: new Date(Date.now() - 86400000 * 1).toISOString(),
+                rubric: { commitment: 0, maturity: 0, trackMindset: 0 },
+                founderNotes: '',
+                mindsetScore: 0,
+                greenFlags: [],
+                redFlags: []
+            },
+            {
+                id: 'GG-2026-0003',
+                name: 'يوسف إبراهيم حسن',
+                governorate: 'الغربية',
+                address: 'طنطا، شارع الجلاء',
+                whatsapp: '01234567890',
+                altPhone: '01534567890',
+                email: 'youssef.ibrahim.h@gmail.com',
+                faculty: 'حاسبات ومعلومات - جامعة طنطا',
+                academicYear: 'الفرقة الثانية',
+                github: 'https://github.com/youssef-ibrahim',
+                linkedin: '',
+                facebook: 'https://facebook.com/youssef.ibrahimm',
+                portfolio: '',
+                hours: '10-15 ساعة أسبوعياً',
+                compensation: 'عادي مفيش مشكلة',
+                mansouraMeetings: 'صعب أروح المنصورة كل أسبوع بس ممكن مرة في الشهر',
+                blockers: 'مفيش مشكلة حالياً',
+                scenario1Choice: 'أستنى لحد الديدلاين وأشوف إيه اللي يحصل',
+                scenario1Why: 'ممكن ألحق أخلص. عادي يعني مش لازم أبلّغ حد، هحاول ألحق لوحدي الأول.',
+                scenario2: 'هرد عليه وأقوله مش غلطتي والشغل كان تمام. مش هسكت على حد ينتقدني قدام الكل، أنا عارف شغلي كويس.',
+                scenario3: 'عادي يعني كل واحد وشغله. مش شغلي إني أراقب حد تاني. لو حد مش بيشتغل ده مش مسؤوليتي.',
+                scenario4: 'أنا صح وهفضل على رأيي. لو التيم ليدر غلط مش هنفذ حاجة غلط عشان هو قال.',
+                scenario5: 'عايز أضيف حاجة حلوة للـ CV بتاعي وأجرب أشتغل في startup.',
+                track: 'Back-End',
+                trackAnswers: [
+                    'هشوف الـ logs أول حاجة وأحاول أفهم الـ bottleneck فين. ممكن أزود الـ server أو أعمل caching.',
+                    'هستخدم JWT مع roles في الـ database. كل role ليه permissions مختلفة.',
+                    'أول حاجة هشوف الـ error logs. بعدين هحاول أعمل restart للـ database. لو مرجعتش هشوف الـ backup.'
+                ],
+                taskConfirm: true,
+                status: 'pending',
+                submittedAt: new Date(Date.now() - 86400000 * 3).toISOString(),
+                rubric: { commitment: 0, maturity: 0, trackMindset: 0 },
+                founderNotes: '',
+                mindsetScore: 0,
+                greenFlags: [],
+                redFlags: []
+            },
+            {
+                id: 'GG-2026-0004',
+                name: 'نورهان عادل فتحي',
+                governorate: 'الإسكندرية',
+                address: 'سموحة، شارع فوزي معاذ',
+                whatsapp: '01276543210',
+                altPhone: '01076543210',
+                email: 'nourhan.adel.f@gmail.com',
+                faculty: 'تجارة - جامعة الإسكندرية (تعليم ذاتي في البرمجة)',
+                academicYear: 'خريجة 2025',
+                github: 'https://github.com/nourhan-adel',
+                linkedin: 'https://linkedin.com/in/nourhan-adel-ai',
+                facebook: '',
+                portfolio: 'https://nourhan-ai.streamlit.app',
+                hours: '25-30 ساعة أسبوعياً',
+                compensation: 'أنا فاهمة إن المقابل مش مادي في البداية، وده طبيعي في مرحلة التأسيس. المهم نبني حاجة ليها قيمة.',
+                mansouraMeetings: 'أقدر أحضر أونلاين وأنزل المنصورة مرة كل أسبوعين',
+                blockers: 'مفيش عوائق حالياً، متفرغة بشكل كامل',
+                scenario1Choice: 'أبلّغ التيم ليدر أو المسؤول فوراً وأوضّح الموقف',
+                scenario1Why: 'هبلّغ التيم ليدر فوراً وأوضح إيه اللي خلصته وإيه المتبقي. هقترح خطة بديلة وأطلب مساعدة لو محتاجة. مسؤولية إني أكون شفافة وأتواصل بدري.',
+                scenario2: 'هتقبل النقد وأحاول أستمع بموضوعية. لو فيه فيدباك مفيد هستفيد منه وأحسن شغلي. لو الأسلوب كان مش مناسب هتكلم مع الزميل في الخاص بشكل هادي.',
+                scenario3: 'هتكلم مع الزميل أول حاجة وأفهم ظروفه. لو محتاج مساعدة هساعده. لو مش عايز يشتغل هبلّغ المسؤول عشان مسؤولية الفريق كله.',
+                scenario4: 'هقدم رأيي ببيانات وتحليل. لو بعد نقاش موضوعي التيم ليدر مقتنع برأيه، هحترم القرار وأنفذه. التيم أهم من إني أكون صح.',
+                scenario5: 'عايزة أتعلم AI في بيئة عملية مش مجرد كورسات. بحب أبني أوتوميشن وأشوف تأثيره الحقيقي. التأسيس من الصفر تجربة مش هتلاقيها في أي شركة تانية.',
+                track: 'AI Automation',
+                trackAnswers: [
+                    'أول حاجة هفهم العملية اليدوية كويس وأعمل process mapping. بعدين هحدد إيه الخطوات اللي ممكن تتأتمت وإيه الـ edge cases. بعدين هختار الأدوات المناسبة (Python, APIs, etc) وأعمل prototype. هعمل اختبار مع بيانات حقيقية وأخد فيدباك قبل ما أنفذ على نطاق واسع.',
+                    'API الجاهز أسرع وأرخص لو الـ use case standard ومش محتاج customization كبير. تدريب موديل خاص أفضل لما يكون عندك بيانات خاصة أو الـ API مش بيدي نتائج كويسة. المهم أفكر في الـ cost vs quality vs time.',
+                    'أول حاجة هراجع الـ logs وأفهم إيه نوع الأخطاء. بعدين هعدل الـ prompts أو أضيف guardrails. هعمل اختبار مكثف وأضيف fallback responses. ولازم يكون فيه human review process.'
+                ],
+                taskConfirm: true,
+                status: 'pending',
+                submittedAt: new Date(Date.now() - 86400000 * 0.5).toISOString(),
+                rubric: { commitment: 0, maturity: 0, trackMindset: 0 },
+                founderNotes: '',
+                mindsetScore: 0,
+                greenFlags: [],
+                redFlags: []
+            },
+            {
+                id: 'GG-2026-0005',
+                name: 'محمد علي الشافعي',
+                governorate: 'الشرقية',
+                address: 'الزقازيق، حي الأمل',
+                whatsapp: '01156789012',
+                altPhone: '',
+                email: 'mohamed.ali.shafei@yahoo.com',
+                faculty: 'إعلام - جامعة الزقازيق',
+                academicYear: 'الفرقة الثالثة',
+                github: '',
+                linkedin: 'https://linkedin.com/in/m-shafei-content',
+                facebook: 'https://facebook.com/m.ali.shafei',
+                portfolio: '',
+                hours: '15-20 ساعة أسبوعياً',
+                compensation: 'مش فارق المادة دلوقتي بس أتمنى لو الموضوع كبر يبقى فيه مقابل',
+                mansouraMeetings: 'أقدر أروح المنصورة مرة كل أسبوعين',
+                blockers: 'عندي شغل freelance ساعات بياخد وقت بس بحاول أنظم',
+                scenario1Choice: 'أدّي الجزء اللي عليا لحد تاني يخلّصه',
+                scenario1Why: 'مش هينفع أخلص كل حاجة لوحدي، الأفضل أدي الجزء الصعب لحد تاني يقدر يخلصه. كده الديدلاين يتلحق.',
+                scenario2: 'هحاول أفهم إيه المشكلة وأسأل إيه اللي غلط بالظبط. لكن لو حد كلمني بشكل وحش هرد عليه.',
+                scenario3: 'هحاول أتكلم مع الزميل أول حاجة. بس لو مش عايز يشتغل مش مسؤوليتي أخليه يشتغل. هبلّغ التيم ليدر.',
+                scenario4: 'هحاول أوضح رأيي بالأسباب. بس لو مفيش فايدة ممكن أرفض أنفذ حاجة أنا مش مقتنع بيها.',
+                scenario5: 'بحب المحتوى وعايز أشتغل في مكان يقدر الإبداع. عايز أبني audience حقيقي وأتعلم من تجربة عملية. بس بلاش يبقى الشغل كتير أوي.',
+                track: 'Content Creator',
+                trackAnswers: [
+                    'أول أسبوع هعمل research على الـ target audience وأفهم اهتماماتهم. هعمل content calendar وأحدد الـ platforms. تاني أسبوع هبدأ أنفذ: بوستات، reels قصيرة، وstories. هراقب الـ analytics وأعدل الخطة.',
+                    'Engagement يعني الناس بتتفاعل (likes, comments, shares). Conversion يعني الناس بتاخد action (تسجيل، شراء). الاتنين مهمين بس لازم أوازن. ممكن 70% engagement و 30% conversion.',
+                    'هشوف الـ analytics أول حاجة وأفهم ليه منزلش. هقارن بالبوستات اللي نجحت قبل كده. ممكن التوقيت أو الـ format أو الـ hook مكانوش مناسبين. هأجرب أعدل وأنزل تاني.'
+                ],
+                taskConfirm: true,
+                status: 'pending',
+                submittedAt: new Date(Date.now() - 86400000 * 4).toISOString(),
+                rubric: { commitment: 0, maturity: 0, trackMindset: 0 },
+                founderNotes: '',
+                mindsetScore: 0,
+                greenFlags: [],
+                redFlags: []
+            }
+        ];
+
+        // دمج مع البيانات الموجودة
+        const existing = getApplicants();
+        const existingIds = new Set(existing.map(a => a.id));
+        const newOnes = demoApplicants.filter(d => !existingIds.has(d.id));
+        const merged = [...existing, ...newOnes];
+        saveApplicants(merged);
+
+        // تشغيل المحلل
+        analyzeAllApplicants();
+        refreshUI();
+
+        showToast('تم تحميل 5 ملفات تجريبية بنجاح');
+    }
+
+    // =====================================================
+    // استيراد JSON
+    // =====================================================
+    function importJSON(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                let data = JSON.parse(e.target.result);
+                // دعم ملف واحد أو مصفوفة
+                if (!Array.isArray(data)) data = [data];
+
+                const existing = getApplicants();
+                const existingIds = new Set(existing.map(a => a.id));
+
+                data.forEach(item => {
+                    if (item.id && !existingIds.has(item.id)) {
+                        existing.push(item);
+                        existingIds.add(item.id);
+                    } else if (item.id && existingIds.has(item.id)) {
+                        // تحديث الموجود
+                        const idx = existing.findIndex(a => a.id === item.id);
+                        if (idx !== -1) existing[idx] = { ...existing[idx], ...item };
+                    }
+                });
+
+                saveApplicants(existing);
+                analyzeAllApplicants();
+                refreshUI();
+                showToast(`تم استيراد ${data.length} ملف بنجاح`);
+            } catch (err) {
+                showToast('خطأ في قراءة الملف: ' + err.message, 'error');
+            }
+        };
+        reader.readAsText(file);
+        event.target.value = ''; // إعادة تعيين
+    }
+
+    // =====================================================
+    // تصدير JSON
+    // =====================================================
+    function exportJSON() {
+        const applicants = getApplicants();
+        if (applicants.length === 0) {
+            showToast('لا يوجد بيانات للتصدير', 'error');
+            return;
+        }
+
+        const blob = new Blob([JSON.stringify(applicants, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'gaber_applicants_backup.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast('تم تصدير النسخة الاحتياطية');
+    }
+
+    // =====================================================
+    // تصدير CSV
+    // =====================================================
+    function exportCSV() {
+        const applicants = getApplicants();
+        if (applicants.length === 0) {
+            showToast('لا يوجد بيانات للتصدير', 'error');
+            return;
+        }
+
+        const headers = ['ID', 'الاسم', 'المسار', 'الحالة', 'المحافظة', 'واتساب', 'البريد الإلكتروني', 'الكلية', 'السنة الدراسية', 'ساعات الإتاحة', 'تقييم الوعي', 'متوسط الروبريك'];
+
+        const rows = applicants.map(a => {
+            const r = a.rubric || { commitment: 0, maturity: 0, trackMindset: 0 };
+            const rubricAvg = ((r.commitment + r.maturity + r.trackMindset) / 3).toFixed(1);
+            const si = statusInfo(a.status);
+
+            return [
+                a.id || '',
+                a.name || '',
+                a.track || '',
+                si.label,
+                a.governorate || '',
+                a.whatsapp || '',
+                a.email || '',
+                a.faculty || '',
+                a.academicYear || '',
+                a.hours || '',
+                a.mindsetScore != null ? a.mindsetScore : '',
+                rubricAvg
+            ].map(field => `"${String(field).replace(/"/g, '""')}"`).join(',');
+        });
+
+        // إضافة BOM لدعم UTF-8 في Excel
+        const bom = '\uFEFF';
+        const csv = bom + headers.map(h => `"${h}"`).join(',') + '\n' + rows.join('\n');
+
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'gaber_applicants_export.csv';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast('تم تصدير ملف CSV');
+    }
+
+    // =====================================================
+    // الإعدادات
+    // =====================================================
+    function toggleSettings() {
+        const overlay = document.getElementById('settings-overlay');
+        const panel = document.getElementById('settings-panel');
+        const isOpen = panel.classList.contains('open');
+
+        if (isOpen) {
+            overlay.classList.remove('open');
+            panel.classList.remove('open');
+        } else {
+            overlay.classList.add('open');
+            panel.classList.add('open');
+            document.getElementById('settings-wa-template').value = getWATemplate();
+        }
+    }
+
+    function changePin() {
+        const current = document.getElementById('settings-current-pin').value;
+        const newPin = document.getElementById('settings-new-pin').value;
+        const msg = document.getElementById('pin-change-msg');
+
+        if (current !== getPin()) {
+            msg.textContent = 'الرمز الحالي غير صحيح';
+            msg.className = 'text-xs text-center text-red-400 opacity-100 transition-opacity';
+            return;
+        }
+
+        if (newPin.length !== 4 || !/^\d{4}$/.test(newPin)) {
+            msg.textContent = 'الرمز الجديد يجب أن يكون 4 أرقام';
+            msg.className = 'text-xs text-center text-red-400 opacity-100 transition-opacity';
+            return;
+        }
+
+        localStorage.setItem(PIN_KEY, newPin);
+        msg.textContent = 'تم تحديث الرمز بنجاح ✓';
+        msg.className = 'text-xs text-center text-green-400 opacity-100 transition-opacity';
+        document.getElementById('settings-current-pin').value = '';
+        document.getElementById('settings-new-pin').value = '';
+
+        setTimeout(() => { msg.style.opacity = '0'; }, 3000);
+    }
+
+    function saveWATemplate() {
+        const template = document.getElementById('settings-wa-template').value;
+        localStorage.setItem(WA_TEMPLATE_KEY, template);
+        showToast('تم حفظ قالب WhatsApp');
+    }
+
+    function clearAllData() {
+        if (!confirm('هل أنت متأكد من مسح جميع البيانات؟ هذا الإجراء لا يمكن التراجع عنه.')) return;
+        if (!confirm('تأكيد نهائي: سيتم حذف جميع المتقدمين والإعدادات. متأكد؟')) return;
+
+        localStorage.removeItem(STORAGE_KEY);
+        refreshUI();
+        toggleSettings();
+        showToast('تم مسح جميع البيانات', 'error');
+    }
+
+    // =====================================================
+    // Toast / إشعار
+    // =====================================================
+    function showToast(message, type = 'success') {
+        const existing = document.querySelector('.toast-notification');
+        if (existing) existing.remove();
+
+        const toast = document.createElement('div');
+        toast.className = 'toast-notification fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] px-6 py-3 rounded-xl font-medium text-sm shadow-2xl transition-all duration-500';
+        toast.style.background = type === 'success' ? 'rgba(34,197,94,0.9)' : 'rgba(239,68,68,0.9)';
+        toast.style.color = 'white';
+        toast.style.backdropFilter = 'blur(16px)';
+        toast.textContent = message;
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translate(-50%, 20px)';
+            setTimeout(() => toast.remove(), 500);
+        }, 3000);
+    }
+
+    // =====================================================
+    // تحديث الواجهة
+    // =====================================================
+    function refreshUI() {
+        renderKPIs();
+        renderApplicants();
+    }
+
+    // =====================================================
+    // شاشة قفل PIN
+    // =====================================================
+    function initPinGate() {
+        const inputs = document.querySelectorAll('.pin-input');
+
+        inputs.forEach((input, idx) => {
+            input.addEventListener('input', (e) => {
+                const val = e.target.value;
+                if (val.length === 1 && idx < 3) {
+                    inputs[idx + 1].focus();
+                }
+                // محاولة التحقق عند ملء الأربعة
+                if (idx === 3 && val.length === 1) {
+                    setTimeout(verifyPin, 100);
+                }
+            });
+
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && !e.target.value && idx > 0) {
+                    inputs[idx - 1].focus();
+                }
+                if (e.key === 'Enter') {
+                    verifyPin();
+                }
+            });
+
+            // منع إدخال غير رقمي
+            input.addEventListener('keypress', (e) => {
+                if (!/\d/.test(e.key)) e.preventDefault();
+            });
+        });
+
+        document.getElementById('pin-submit').addEventListener('click', verifyPin);
+
+        // تركيز أول خانة
+        setTimeout(() => inputs[0].focus(), 300);
+    }
+
+    function verifyPin() {
+        const inputs = document.querySelectorAll('.pin-input');
+        const entered = Array.from(inputs).map(i => i.value).join('');
+
+        if (entered.length < 4) return;
+
+        if (entered === getPin()) {
+            // نجاح
+            const gate = document.getElementById('pin-gate');
+            gate.style.transition = 'opacity 0.5s, transform 0.5s';
+            gate.style.opacity = '0';
+            gate.style.transform = 'scale(1.05)';
+            setTimeout(() => {
+                gate.style.display = 'none';
+                document.getElementById('main-app').classList.remove('hidden');
+                // تشغيل المحلل عند التحميل
+                analyzeAllApplicants();
+                refreshUI();
+            }, 500);
+        } else {
+            // فشل
+            const container = document.getElementById('pin-container');
+            const error = document.getElementById('pin-error');
+            container.classList.add('shake');
+            error.style.opacity = '1';
+
+            setTimeout(() => {
+                container.classList.remove('shake');
+                inputs.forEach(i => i.value = '');
+                inputs[0].focus();
+            }, 600);
+
+            setTimeout(() => { error.style.opacity = '0'; }, 3000);
+        }
+    }
+
+    // =====================================================
+    // تأثير إضاءة المؤشر
+    // =====================================================
+    function initCursorGlow() {
+        const glow = document.getElementById('cursor-glow');
+        let mouseX = 0, mouseY = 0;
+        let glowX = 0, glowY = 0;
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
+
+        function animate() {
+            glowX += (mouseX - glowX) * 0.1;
+            glowY += (mouseY - glowY) * 0.1;
+            glow.style.left = glowX + 'px';
+            glow.style.top = glowY + 'px';
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        // إخفاء عند خروج المؤشر
+        document.addEventListener('mouseleave', () => { glow.style.opacity = '0'; });
+        document.addEventListener('mouseenter', () => { glow.style.opacity = '1'; });
+    }
+
+    // =====================================================
+    // مراقبة localStorage للتحديثات من تبويب آخر
+    // =====================================================
+    window.addEventListener('storage', (e) => {
+        if (e.key === STORAGE_KEY) {
+            refreshUI();
+        }
+    });
+
+    // =====================================================
+    // التهيئة
+    // =====================================================
+    document.addEventListener('DOMContentLoaded', () => {
+        initCursorGlow();
+        initPinGate();
+    });
+    </script>
+</body>
+</html>
